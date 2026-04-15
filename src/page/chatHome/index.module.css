@@ -1,0 +1,119 @@
+/* 自定义滚动条样式 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes cursorBlink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+/* AI 打字光标 */
+:global(.custom-ai-answer .custom-golbal-cursor-dot)::after {
+  display: inline-block;
+  content: "▍";
+  animation: cursorBlink 1s infinite;
+}
+
+:global(.custom-ai-answer.is-generating > *:last-child)::after {
+  display: inline-block;
+  content: "●";
+  animation: cursorBlink 1s infinite;
+  margin-left: 4px;
+  color: #c38afc; /* 光标颜色，可根据主题调整 */
+}
+
+/* Markdown 解析后的内容样式 (参考腾讯元宝) */
+.markdown {
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+/* 表格样式 */
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.markdown th {
+  background-color: #f9fafb;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.markdown td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.markdown tr:last-child td {
+  border-bottom: none;
+}
+
+/* 代码块样式 */
+.markdown pre {
+  background-color: #f6f8fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+}
+
+.markdown code {
+  font-family:
+    "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 13px;
+  padding: 2px 4px;
+  background-color: rgba(175, 184, 193, 0.2);
+  border-radius: 4px;
+}
+
+.markdown pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  display: block;
+  line-height: 1.5;
+  color: #1f2328;
+}
+
+/* 列表样式 */
+.markdown ul,
+.markdown ol {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.markdown li {
+  margin-bottom: 4px;
+}
+
+/* 链接样式 */
+.markdown a {
+  color: #0066ff;
+  text-decoration: none;
+}
+
+.markdown a:hover {
+  text-decoration: underline;
+}

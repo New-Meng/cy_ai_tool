@@ -1,0 +1,19 @@
+# React + TypeScript + Vite + Electron + Langchain
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+** 项目启动 **
+`npm run dev` 
+会自动启动项目，F5已经配置了debugger，如果需要更改配置，请修改 .vscode / launch.json
+
+` npm run build `
+会自动打包项目，打包后的文件会在 dist 目录下 大概，目前项目没有很多条件编译，理论上支持 linux、windows、macos, 实际上window的支持是完善的 :(
+
+
+** 注意事项 **
+1. 项目依赖 node 18 以上版本
+2. 项目依赖 electron 18 以上版本
+3. 项目依赖 langchain 0.1.0 以上版本
+4. electron-store 开发环境下，指向 /devConfig 目录下的配置文件
+
+5. 目前AI模型，只支持deepseek和豆包，其中，豆包ListFoundationModels接口，需要ak/sk签名，才能拿到模型列表 + 模型id 犯病的很，模型类型选择只提供有限支持

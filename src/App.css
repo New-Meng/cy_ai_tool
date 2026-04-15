@@ -1,0 +1,50 @@
+hr {
+  border: none;
+}
+.app-root {
+  width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+.app-layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+/* 侧边栏样式已迁移至 Sidebar 组件 */
+
+.app-content {
+  box-sizing: border-box;
+  padding: 10px;
+  flex: 1;
+  background-color: #ffffff; /* 白色背景 */
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: calc(100% - 200px);
+}
+
+.app-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 30px;
+  background-color: #ffffff;
+  border-top: 1px solid #eeeeee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #313746;
+  font-size: 12px;
+}
+
+/* 移除多余的媒体查询 */

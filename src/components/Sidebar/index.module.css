@@ -1,0 +1,42 @@
+.sidebar {
+  width: 160px;
+  height: 300px;
+  background-color: #fafbfd; /* 浅色背景 */
+  box-sizing: border-box;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* 菜单项之间的间距 */
+}
+
+.menu-item-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: center;
+  align-self: center;
+
+  border: none;
+  background: transparent;
+  color: #313746;
+  cursor: pointer;
+  font-size: 20px; /* 字体加大 */
+  font-weight: 500;
+  text-align: left;
+  width: 100%;
+  transition: color 0.2s;
+  border-radius: 10px;
+}
+
+.menu-item-active {
+  color: #ff5a5a; /* 激活颜色 */
+}
+
+.menu-item:hover {
+  color: #ff5a5a;
+  background-color: #f5f6fe;
+}

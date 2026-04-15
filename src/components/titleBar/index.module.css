@@ -1,0 +1,63 @@
+.title-bar-place {
+  height: 40px;
+}
+.title-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999999999;
+  box-sizing: border-box;
+  padding: 5px 24px;
+  height: 40px;
+  width: 100vw;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  -webkit-app-region: drag; /* 允许拖拽 */
+}
+
+.window-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-app-region: no-drag; /* 按钮区域不可拖拽 */
+}
+
+.window-controls .window-control-btn {
+  padding: 0 !important;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #9699a6; /* 按钮颜色 */
+  background-color: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.window-controls .window-control-btn:hover {
+  background-color: #313746;
+}
+
+@media (prefers-color-scheme: light) {
+  .title-bar {
+    color: #213547;
+    background: linear-gradient(to right, #ffffff, #c8e7f4);
+  }
+
+  .window-controls .window-control-btn {
+    color: #213547;
+    background-color: transparent;
+    font-size: 20px;
+  }
+
+  .window-controls .window-control-btn:hover {
+    color: #213547;
+    background-color: #f3f5fe;
+  }
+}

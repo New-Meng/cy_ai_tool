@@ -6,7 +6,7 @@ export const rendererAiMessageController = () => {
   const simpleChatbotIns = new SimpleChatbot();
 
   // 给ai 发消息，并等待ai回复
-  ipcMain.handle("askMessageInvoke", async (event, content: string) => {
+  ipcMain.handle("askMessageInvoke", async (_, content: string) => {
     if (!content) {
       return ResultRt.fail("请输入内容!");
     }

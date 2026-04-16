@@ -87,7 +87,8 @@ app.on("activate", () => {
 
 // 创建托盘图标
 function createTray() {
-  tray = new Tray(path.join(__dirname, "../public/coding.png")); // 替换为你的图标路径
+  // 这里的  process.env.VITE_PUBLIC 开发指向 pubic 生成也会自动指向正确的位置
+  tray = new Tray(path.join(process.env.VITE_PUBLIC, "coding.png"));
 
   const contextMenu = Menu.buildFromTemplate([
     {

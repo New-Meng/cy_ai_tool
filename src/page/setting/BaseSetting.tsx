@@ -88,7 +88,7 @@ const BaseSetting: React.FC<TypeProps> = ({ curTab }) => {
       const result = await window.ipcRenderer.invoke("get-base-setting");
       if (result.success) {
         setIsWinCloseMin(result.data.isWinCloseMin);
-        setShortcutKeyMap(result.data.shortKeyConfig);
+        setShortcutKeyMap(result?.data?.shortKeyConfig || {});
       }
     } catch (error) {
       messageApi.error("获取基础信息失败!");

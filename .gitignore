@@ -12,6 +12,8 @@ dist
 dist-electron
 dist-ssr
 *.local
+# 打包后的产物
+release
 
 # Editor directories and files
 .vscode/*

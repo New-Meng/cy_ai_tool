@@ -14,7 +14,7 @@ export interface InterfaceModalRef {
   open: (modelName?: string) => Promise<boolean>;
 }
 
-const AddModal = forwardRef<InterfaceModalRef, unknown>((props, ref) => {
+const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
   {
     const [form] = Form.useForm();
     const [isOpen, setIsOpen] = useState(false);

@@ -62,11 +62,12 @@ const ChatHome = () => {
     setChatList([
       ...chatList,
       { type: "human", content: textValue },
-      { type: "ai", content: "" },
+      { type: "ai", content: "<span></span>" }, // 预留元素，作为光点闪烁
     ]);
 
     window.ipcRenderer.invoke("askMessageStream", textValue);
-    setTextValue("");
+    setTextValue(""); // 发送后清空输入框
+    setStreamStatus(1); // 光点闪烁，让人觉得正在响应
   };
 
   const handleSendStop = async () => {
@@ -106,8 +107,10 @@ const ChatHome = () => {
     }
   };
 
-  const handleClearMessage = () => {
+  const handleClearMessage = async () => {
     setTextValue("");
+    await window.ipcRenderer.invoke("clearCurrentMessage");
+    setChatList([]);
   };
 
   // 监听返回的流
@@ -144,6 +147,8 @@ const ChatHome = () => {
     window.ipcRenderer.removeAllListeners("aiAnswer-end");
     window.ipcRenderer.removeAllListeners("aiAnswer-error");
     window.ipcRenderer.removeAllListeners("aiAnswer-ing");
+
+    window.ipcRenderer.invoke("clearCurrentMessage");
   };
 
   useEffect(() => {
@@ -224,9 +229,14 @@ const ChatHome = () => {
               setTextValue(val.target.value);
             }}
             onKeyDown={(e) => {
-              if (e.key == "Enter") {
+              // 敲击回车时发送（如果不按 Shift）
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault(); // 阻止默认的回车换行行为
                 e.stopPropagation();
-                setTextValue("");
+
+                // 如果输入为空，则不发送
+                if (!textValue.trim()) return;
+
                 handleSendText();
               }
             }}

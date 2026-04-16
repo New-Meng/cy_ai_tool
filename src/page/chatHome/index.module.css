@@ -27,7 +27,7 @@
   animation: cursorBlink 1s infinite;
 }
 
-:global(.custom-ai-answer.is-generating > *:last-child)::after {
+:global(.custom-ai-answer:last-of-type.is-generating > *:last-child)::after {
   display: inline-block;
   content: "●";
   animation: cursorBlink 1s infinite;

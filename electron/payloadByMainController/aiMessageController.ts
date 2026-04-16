@@ -54,4 +54,9 @@ export const rendererAiMessageController = () => {
     const list = await simpleChatbotIns.getMessageList();
     return ResultRt.success(list);
   });
+
+  ipcMain.handle("clearCurrentMessage", () => {
+    simpleChatbotIns.clearAIModelCurrentMessage();
+    return ResultRt.success(true);
+  });
 };

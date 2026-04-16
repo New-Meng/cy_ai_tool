@@ -148,4 +148,8 @@ export class SimpleChatbot {
   async setAiAnswerMessage(content: string) {
     this.message.push(new AIMessage(content));
   }
+
+  async clearAIModelCurrentMessage() {
+    this.message = [];
+  }
 }

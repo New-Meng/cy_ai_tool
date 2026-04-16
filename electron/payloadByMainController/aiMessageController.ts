@@ -20,12 +20,9 @@ export const rendererAiMessageController = () => {
         return ResultRt.fail("请输入内容!");
       }
       const res = await simpleChatbotIns.sendMessageStream(content);
-      let tempText = "";
       for await (const chunk of res) {
-        tempText += chunk.content;
         event.sender.send("aiAnswer-ing", chunk.content);
       }
-      simpleChatbotIns.setAiAnswerMessage(tempText);
       event.sender.send("aiAnswer-end");
       return ResultRt.success(true);
     } catch (error) {

@@ -2,8 +2,15 @@ import { ChatOpenAI } from "@langchain/openai";
 import { SETTING_MODEL_LIST } from "../../constant/storeName";
 import { configManagerFactory } from "../config/config-manager";
 import { ModelItemInterace } from "../payloadByMainController/settingController";
-// human 用户消息   ai 模型回复
-import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import {
+  Runnable,
+  RunnableWithMessageHistory,
+} from "@langchain/core/runnables";
+import { InMemoryChatMessageHistory } from "@langchain/core/chat_history";
+import {
+  ChatPromptTemplate,
+  MessagesPlaceholder,
+} from "@langchain/core/prompts";
 import { MODEL_INFO_MAP } from "../../constant";
 
 export type CustomChatModelOpenAI = ChatOpenAI & {
@@ -20,12 +27,20 @@ export class SimpleChatbot {
   // 用于记录请求集合，用于取消请求，只有stream方式，可以 中断，也只有他中断有意义
   // stream 有建立post 长链接  invoke是一次性请求
   abortController: Map<string, AbortController> = new Map();
-  message: (HumanMessage | AIMessage)[];
+  message: InMemoryChatMessageHistory;
+
+  prompt = ChatPromptTemplate.fromMessages([
+    ["system", ""],
+    new MessagesPlaceholder("history"), // 这里的名字要和下面 historyMessagesKey 一致
+    ["human", "{content}"], // 这里的变量名要和下面 inputMessagesKey 一致 content代表用户
+  ]);
+
+  chatChain: Runnable | null = null;
   constructor() {
     // 当前使用的模型实例
     this.currentModel = null;
 
-    this.message = [];
+    this.message = new InMemoryChatMessageHistory();
 
     this.modelMap = {};
 
@@ -91,13 +106,26 @@ export class SimpleChatbot {
     }
     try {
       const targetModel = this.getChatModel(this.modelConfigList[modelId]);
-
       this.currentModel = targetModel as CustomChatModelOpenAI;
-      console.log(modelId, "curModelId");
+
+      this.initChain();
     } catch (error) {
       console.log(error, "++??error");
       throw new Error(`模型ID:${modelId} 切换失败`);
     }
+  }
+
+  initChain() {
+    if (!this.currentModel) {
+      throw new Error("当前未选择模型");
+    }
+    this.chatChain = new RunnableWithMessageHistory({
+      runnable: this.prompt.pipe(this.currentModel), // 传入动态链
+      getMessageHistory: () => this.message, // 自动存储历史
+      inputMessagesKey: "content", // 对应上面 Prompt 里的 {content}
+      // 对应上面 Prompt 里的 MessagesPlaceholder("history")
+      historyMessagesKey: "history",
+    });
   }
 
   // 用户发送消息 一次性返回
@@ -106,11 +134,16 @@ export class SimpleChatbot {
       if (!this.currentModel) {
         throw new Error("当前未选择模型");
       }
-      const sendContent: HumanMessage = new HumanMessage(content);
-      this.message.push(sendContent);
-      const aiResponse = await this.currentModel.invoke(this.message);
-      this.message.push(new AIMessage(aiResponse.content));
-      return aiResponse.content;
+
+      if (!this.chatChain) {
+        throw new Error("当前为生成chain");
+      }
+      const tempRes = await this.chatChain.invoke(
+        { content },
+        { configurable: { sessionId: "default" } },
+      );
+
+      return tempRes;
     } catch (error) {
       console.log(error, "++??error");
       return error;
@@ -121,19 +154,17 @@ export class SimpleChatbot {
     if (!this.currentModel) {
       throw new Error("当前未选择模型");
     }
-    const requestKey = this.currentModel._$modelId;
-    if (!requestKey) {
-      throw new Error("当前模型未配置模型供应商");
-    }
-    const userMessage = new HumanMessage(content);
-    const abortController = new AbortController();
-    this.abortController.set(requestKey, abortController);
-    this.message.push(userMessage);
-    const tempStream = this.currentModel.stream(this.message, {
-      signal: abortController.signal,
-    });
 
-    return tempStream;
+    // 使用 LCEL + 自动记忆器
+    if (!this.chatChain) {
+      throw new Error("没有生成chain");
+    } else {
+      const tempStream = await this.chatChain.stream(
+        { content },
+        { configurable: { sessionId: "default" } },
+      );
+      return tempStream;
+    }
   }
 
   // 停止当前回答
@@ -145,11 +176,7 @@ export class SimpleChatbot {
     }
   }
 
-  async setAiAnswerMessage(content: string) {
-    this.message.push(new AIMessage(content));
-  }
-
   async clearAIModelCurrentMessage() {
-    this.message = [];
+    await this.message.clear();
   }
 }

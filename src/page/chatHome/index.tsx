@@ -224,9 +224,9 @@ const ChatHome = () => {
               setTextValue(val.target.value);
             }}
             onKeyDown={(e) => {
-              e.stopPropagation();
-              setTextValue("");
               if (e.key == "Enter") {
+                e.stopPropagation();
+                setTextValue("");
                 handleSendText();
               }
             }}

@@ -534,7 +534,7 @@ if (!IS_WINDOWS) {
 if (IS_LINUX) {
   Signals.push("SIGIO", "SIGPOLL", "SIGPWR", "SIGSTKFLT");
 }
-let Interceptor$1 = class Interceptor {
+class Interceptor {
   /* CONSTRUCTOR */
   constructor() {
     this.callbacks = /* @__PURE__ */ new Set();
@@ -571,9 +571,9 @@ let Interceptor$1 = class Interceptor {
     };
     this.hook();
   }
-};
-const Interceptor2 = new Interceptor$1();
-const whenExit = Interceptor2.register;
+}
+const Interceptor$1 = new Interceptor();
+const whenExit = Interceptor$1.register;
 const Temp = {
   /* VARIABLES */
   store: {},
@@ -9733,7 +9733,7 @@ const ltr = ltr_1;
 const intersects = intersects_1;
 const simplifyRange = simplify;
 const subset = subset_1;
-var semver$1 = {
+var semver = {
   parse: parse$3,
   valid,
   clean,
@@ -9780,7 +9780,7 @@ var semver$1 = {
   compareIdentifiers: identifiers.compareIdentifiers,
   rcompareIdentifiers: identifiers.rcompareIdentifiers
 };
-const semver = /* @__PURE__ */ getDefaultExportFromCjs(semver$1);
+const semver$1 = /* @__PURE__ */ getDefaultExportFromCjs(semver);
 const objectToString$2 = Object.prototype.toString;
 const uint8ArrayStringified = "[object Uint8Array]";
 const arrayBufferStringified = "[object ArrayBuffer]";
@@ -10290,7 +10290,7 @@ class Conf {
         throw new Error(`Something went wrong during the migration! Changes applied to the store until this failed migration will be restored. ${errorMessage}`);
       }
     }
-    if (this._isVersionInRangeFormat(previousMigratedVersion) || !semver.eq(previousMigratedVersion, versionToMigrate)) {
+    if (this._isVersionInRangeFormat(previousMigratedVersion) || !semver$1.eq(previousMigratedVersion, versionToMigrate)) {
       this._set(MIGRATION_KEY, versionToMigrate);
     }
   }
@@ -10321,19 +10321,19 @@ class Conf {
     return candidate === INTERNAL_KEY || candidate.startsWith(`${INTERNAL_KEY}.`);
   }
   _isVersionInRangeFormat(version2) {
-    return semver.clean(version2) === null;
+    return semver$1.clean(version2) === null;
   }
   _shouldPerformMigration(candidateVersion, previousMigratedVersion, versionToMigrate) {
     if (this._isVersionInRangeFormat(candidateVersion)) {
-      if (previousMigratedVersion !== "0.0.0" && semver.satisfies(previousMigratedVersion, candidateVersion)) {
+      if (previousMigratedVersion !== "0.0.0" && semver$1.satisfies(previousMigratedVersion, candidateVersion)) {
         return false;
       }
-      return semver.satisfies(versionToMigrate, candidateVersion);
+      return semver$1.satisfies(versionToMigrate, candidateVersion);
     }
-    if (semver.lte(candidateVersion, previousMigratedVersion)) {
+    if (semver$1.lte(candidateVersion, previousMigratedVersion)) {
       return false;
     }
-    if (semver.gt(candidateVersion, versionToMigrate)) {
+    if (semver$1.gt(candidateVersion, versionToMigrate)) {
       return false;
     }
     return true;
@@ -57292,7 +57292,9 @@ class SimpleChatbot {
     // 用于记录请求集合，用于取消请求，只有stream方式，可以 中断，也只有他中断有意义
     // stream 有建立post 长链接  invoke是一次性请求
     __publicField(this, "abortController", /* @__PURE__ */ new Map());
+    __publicField(this, "message");
     this.currentModel = null;
+    this.message = [];
     this.modelMap = {};
     const settingStore = configManagerFactory(SETTING_MODEL_LIST);
     this.modelConfigList = (settingStore.get("modelList") || []).reduce(
@@ -57345,6 +57347,7 @@ class SimpleChatbot {
   }
   // 获取对应的消息记录
   getMessageList() {
+    return this.message;
   }
   switchModel(modelId) {
     if (!this.modelConfigList[modelId]) {
@@ -57366,7 +57369,9 @@ class SimpleChatbot {
         throw new Error("当前未选择模型");
       }
       const sendContent = new HumanMessage(content2);
+      this.message.push(sendContent);
       const aiResponse = await this.currentModel.invoke(this.message);
+      this.message.push(new AIMessage(aiResponse.content));
       return aiResponse.content;
     } catch (error2) {
       console.log(error2, "++??error");
@@ -57381,9 +57386,11 @@ class SimpleChatbot {
     if (!requestKey) {
       throw new Error("当前模型未配置模型供应商");
     }
+    const userMessage = new HumanMessage(content2);
     const abortController = new AbortController();
     this.abortController.set(requestKey, abortController);
-    const tempStream = this.currentModel.stream(content2, {
+    this.message.push(userMessage);
+    const tempStream = this.currentModel.stream(this.message, {
       signal: abortController.signal
     });
     return tempStream;
@@ -57397,6 +57404,7 @@ class SimpleChatbot {
     }
   }
   async setAiAnswerMessage(content2) {
+    this.message.push(new AIMessage(content2));
   }
 }
 const rendererAiMessageController = () => {

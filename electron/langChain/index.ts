@@ -125,10 +125,11 @@ export class SimpleChatbot {
     if (!requestKey) {
       throw new Error("当前模型未配置模型供应商");
     }
+    const userMessage = new HumanMessage(content);
     const abortController = new AbortController();
     this.abortController.set(requestKey, abortController);
-    this.message.push(new HumanMessage(content));
-    const tempStream = this.currentModel.stream(content, {
+    this.message.push(userMessage);
+    const tempStream = this.currentModel.stream(this.message, {
       signal: abortController.signal,
     });
 

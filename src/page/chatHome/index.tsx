@@ -5,10 +5,13 @@ import {
   SwapOutlined,
   PauseOutlined,
 } from "@ant-design/icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { marked } from "marked";
 import styles from "./index.module.css";
 import { ModelItemInterace } from "../../../electron/payloadByMainController/settingController";
+import { modelTemperatureConfig } from "../../../electron/langChain/modelTemperatureConfig";
+
+import { useAutoScrollBottom } from "../../hook";
 
 marked.use({
   gfm: true, // 支持表格、删除线、任务列表
@@ -17,16 +20,39 @@ marked.use({
 });
 
 const ChatHome = () => {
+  const [scrollRef, autoScrollBottom] = useAutoScrollBottom(500);
   const [messageApi, mesageContext] = message.useMessage({
     top: 60,
     maxCount: 3,
   });
 
+  const baseTemperatureList: {
+    label: string;
+    value: keyof typeof modelTemperatureConfig;
+  }[] = [
+    {
+      label: "coding专用",
+      value: 1,
+    },
+    {
+      label: "一般对话",
+      value: 2,
+    },
+    {
+      label: "创造力拉满",
+      value: 3,
+    },
+    {
+      label: "彻底疯狂",
+      value: 4,
+    },
+  ];
+
   // 流状态 0: 未开始 1: 进行中 2: 已结束 3: 已错误
   const [streamStatus, setStreamStatus] = useState(0);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [textValue, setTextValue] = useState("");
+  const [baseTemperatureValue, setBaseTemperatureValue] = useState(1);
   const [modelList, setModelList] = useState<ModelItemInterace[]>([]);
   const [curModel, setCurModel] = useState<string | undefined>(undefined);
   const [chatList, setChatList] = useState<
@@ -107,6 +133,17 @@ const ChatHome = () => {
     }
   };
 
+  // 更改模型温度
+  const updateTemperature = async (val: number) => {
+    setBaseTemperatureValue(val);
+    const res = await window.ipcRenderer.invoke("updateTemperatureModel", val);
+    if (res.success) {
+      messageApi.success("模式更新成功!");
+    } else {
+      messageApi.error(res.message || "模式更新失败!");
+    }
+  };
+
   const handleClearMessage = async () => {
     setTextValue("");
     await window.ipcRenderer.invoke("clearCurrentMessage");
@@ -125,6 +162,7 @@ const ChatHome = () => {
         if (newList[newList.length - 1].type == "ai") {
           newList[newList.length - 1].content += chunk;
         }
+        autoScrollBottom();
         return newList;
       });
     });
@@ -166,21 +204,12 @@ const ChatHome = () => {
     });
   }, [streamStatus]);
 
-  useEffect(() => {
-    const divBox = scrollRef.current;
-    if (divBox) {
-      divBox.scrollTop = divBox.scrollHeight; // 核心代码
-    }
-  }, [chatList?.[chatList.length - 1]?.content]);
-
   return (
     <>
       {mesageContext}
-      <div
-        ref={scrollRef}
-        className="w-full h-full flex flex-col gap-5 justify-between items-center p-4 text-[14px]"
-      >
+      <div className="w-full h-full flex flex-col gap-5 justify-between items-center p-4 text-[14px]">
         <div
+          ref={scrollRef}
           className={`w-full flex-1 overflow-y-auto ${styles["custom-scrollbar"]}`}
         >
           {chatList.map((item, index) => {
@@ -273,6 +302,31 @@ const ChatHome = () => {
                   })}
                 />
               </Tooltip>
+
+              <Select
+                value={baseTemperatureValue}
+                placement="topLeft"
+                suffixIcon={<SwapOutlined />}
+                style={{
+                  width: 150,
+                  height: "25px",
+                  background: "#fff",
+                  fontSize: "12px",
+                }}
+                dropdownStyle={{ fontSize: "12px" }}
+                onChange={(val: number) => {
+                  updateTemperature(val);
+                }}
+                options={Object.values(baseTemperatureList).map((item) => {
+                  return {
+                    label: (
+                      <span style={{ fontSize: "12px" }}>{item.label}</span>
+                    ),
+                    value: item.value,
+                  };
+                })}
+              />
+
               <Tooltip title="清空对话">
                 <Button
                   onClick={handleClearMessage}

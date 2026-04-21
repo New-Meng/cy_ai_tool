@@ -12,6 +12,7 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { MODEL_INFO_MAP } from "../../constant";
+import { initChatModel } from "langchain";
 
 export type CustomChatModelOpenAI = ChatOpenAI & {
   _$modelVender?: number;
@@ -57,8 +58,8 @@ export class SimpleChatbot {
   }
 
   // 获取模型实例
-  getChatModel(modelConfig: ModelItemInterace) {
-    if (this.modelMap[modelConfig.id]) {
+  getChatModel(modelConfig: ModelItemInterace, isReload: boolean = false) {
+    if (this.modelMap[modelConfig.id] && !isReload) {
       return this.modelMap[modelConfig.id];
     } else {
       if (modelConfig.modelVender == MODEL_INFO_MAP.DOUBAO.id) {
@@ -71,6 +72,7 @@ export class SimpleChatbot {
           configuration: {
             baseURL: modelConfig.apiUrl,
           },
+          maxTokens: 4096, // 最大token数
         });
         this.modelMap[modelConfig.id]._$modelVender = modelConfig.modelVender;
         this.modelMap[modelConfig.id]._$modelId = modelConfig.id;
@@ -86,6 +88,7 @@ export class SimpleChatbot {
           configuration: {
             baseURL: modelConfig.apiUrl,
           },
+          maxTokens: 4096, // 最大token数
         });
         this.modelMap[modelConfig.id]._$modelVender = modelConfig.modelVender;
         this.modelMap[modelConfig.id]._$modelId = modelConfig.id;
@@ -113,6 +116,15 @@ export class SimpleChatbot {
       console.log(error, "++??error");
       throw new Error(`模型ID:${modelId} 切换失败`);
     }
+  }
+
+  async updateTemperatureNum(temperatureNum: number) {
+    this.baseTemperature = temperatureNum;
+    this.getChatModel(
+      this.modelConfigList[this.currentModel?._$modelId || ""],
+      true,
+    );
+    this.initChain();
   }
 
   initChain() {
@@ -155,13 +167,22 @@ export class SimpleChatbot {
       throw new Error("当前未选择模型");
     }
 
+    const abortController = new AbortController();
+    this.abortController.set(
+      this.currentModel?._$modelId || "",
+      abortController,
+    );
+
     // 使用 LCEL + 自动记忆器
     if (!this.chatChain) {
       throw new Error("没有生成chain");
     } else {
       const tempStream = await this.chatChain.stream(
         { content },
-        { configurable: { sessionId: "default" } },
+        {
+          configurable: { sessionId: "default" },
+          signal: abortController.signal,
+        },
       );
       return tempStream;
     }
@@ -179,4 +200,12 @@ export class SimpleChatbot {
   async clearAIModelCurrentMessage() {
     await this.message.clear();
   }
+
+  saveCurrentMessage = async () => {
+    const messages = await this.message.getMessages();
+
+    // 转换为 JSON 字符串
+    const jsonMessage = JSON.stringify(messages);
+    return jsonMessage;
+  };
 }

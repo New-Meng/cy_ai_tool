@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import { SimpleChatbot } from "../langChain";
 import { ResultRt } from "../utils";
+import { modelTemperatureConfig } from "../langChain/modelTemperatureConfig";
 
 export const rendererAiMessageController = () => {
   const simpleChatbotIns = new SimpleChatbot();
@@ -55,5 +56,21 @@ export const rendererAiMessageController = () => {
   ipcMain.handle("clearCurrentMessage", () => {
     simpleChatbotIns.clearAIModelCurrentMessage();
     return ResultRt.success(true);
+  });
+
+  ipcMain.handle("updateTemperatureModel", (_, temperatureModel: number) => {
+    try {
+      const config = modelTemperatureConfig[temperatureModel] as Record<
+        string,
+        number
+      >;
+
+      simpleChatbotIns.updateTemperatureNum(config["temperature"]);
+
+      console.log(config);
+      return ResultRt.success(true);
+    } catch (error) {
+      return ResultRt.fail(error);
+    }
   });
 };

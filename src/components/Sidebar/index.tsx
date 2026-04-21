@@ -35,7 +35,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activeMenu, onMenuChange }) => {
   const location = useLocation();
   useEffect(() => {
-    console.log(location.pathname);
+    console.log(location.pathname, "++??pathname");
     onMenuChange(location.pathname as MenuKey);
   }, [location.pathname]);
 

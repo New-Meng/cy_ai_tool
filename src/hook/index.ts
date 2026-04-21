@@ -16,6 +16,17 @@ export const useAutoScrollBottom = <T extends HTMLElement = HTMLDivElement>(
     } else {
       if (divBox) {
         timerRef.current = setTimeout(() => {
+          console.log(
+            divBox.scrollTop,
+            lastScrollTopRef.current,
+            divBox.scrollTop < lastScrollTopRef.current,
+            "++??log",
+          );
+          if (divBox.scrollTop + 40 < lastScrollTopRef.current) {
+            clearTimeout(timerRef.current as NodeJS.Timeout);
+            timerRef.current = null;
+            return;
+          }
           divBox.scrollTop = divBox.scrollHeight;
           lastScrollTopRef.current = divBox.scrollTop;
           clearTimeout(timerRef.current as NodeJS.Timeout);
@@ -25,5 +36,17 @@ export const useAutoScrollBottom = <T extends HTMLElement = HTMLDivElement>(
     }
   }, []);
 
-  return [scrollRef, autoScrollBottom] as const;
+  const toRefBottom = () => {
+    if (!scrollRef.current) {
+      return;
+    } else {
+      scrollRef.current.scrollTop =
+        scrollRef.current?.scrollHeight - scrollRef.current?.clientHeight || 0;
+      lastScrollTopRef.current = scrollRef.current.scrollTop;
+      clearTimeout(timerRef.current as NodeJS.Timeout);
+      timerRef.current = null;
+    }
+  };
+
+  return [scrollRef, autoScrollBottom, toRefBottom] as const;
 };

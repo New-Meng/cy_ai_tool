@@ -72,7 +72,6 @@ export class SimpleChatbot {
           configuration: {
             baseURL: modelConfig.apiUrl,
           },
-          maxTokens: 4096, // 最大token数
         });
         this.modelMap[modelConfig.id]._$modelVender = modelConfig.modelVender;
         this.modelMap[modelConfig.id]._$modelId = modelConfig.id;
@@ -88,7 +87,6 @@ export class SimpleChatbot {
           configuration: {
             baseURL: modelConfig.apiUrl,
           },
-          maxTokens: 4096, // 最大token数
         });
         this.modelMap[modelConfig.id]._$modelVender = modelConfig.modelVender;
         this.modelMap[modelConfig.id]._$modelId = modelConfig.id;

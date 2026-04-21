@@ -20,7 +20,7 @@ marked.use({
 });
 
 const ChatHome = () => {
-  const [scrollRef, autoScrollBottom] = useAutoScrollBottom(500);
+  const [scrollRef, autoScrollBottom, toRefBottom] = useAutoScrollBottom(500);
   const [messageApi, mesageContext] = message.useMessage({
     top: 60,
     maxCount: 3,
@@ -48,7 +48,7 @@ const ChatHome = () => {
     },
   ];
 
-  // 流状态 0: 未开始 1: 进行中 2: 已结束 3: 已错误
+  // 流状态 0: 未开始 1: 进行中 2: 已结束
   const [streamStatus, setStreamStatus] = useState(0);
 
   const [textValue, setTextValue] = useState("");
@@ -94,6 +94,9 @@ const ChatHome = () => {
     window.ipcRenderer.invoke("askMessageStream", textValue);
     setTextValue(""); // 发送后清空输入框
     setStreamStatus(1); // 光点闪烁，让人觉得正在响应
+    setTimeout(() => {
+      toRefBottom();
+    }, 50);
   };
 
   const handleSendStop = async () => {
@@ -145,6 +148,10 @@ const ChatHome = () => {
   };
 
   const handleClearMessage = async () => {
+    if (streamStatus == 1) {
+      messageApi.warning("请先停止当前对话!");
+      return;
+    }
     setTextValue("");
     await window.ipcRenderer.invoke("clearCurrentMessage");
     setChatList([]);
@@ -174,8 +181,8 @@ const ChatHome = () => {
     });
     window.ipcRenderer.on("aiAnswer-error", (_, chunk) => {
       console.log(chunk, "++??error");
-      if (streamStatus != 3) {
-        setStreamStatus(3);
+      if (streamStatus != 2) {
+        setStreamStatus(2);
       }
       messageApi.error(chunk?.message || "请求失败!");
     });
@@ -340,9 +347,7 @@ const ChatHome = () => {
             </div>
 
             <div>
-              {(streamStatus == 0 ||
-                streamStatus == 2 ||
-                streamStatus == 3) && (
+              {(streamStatus == 0 || streamStatus == 2) && (
                 <Button
                   type="primary"
                   icon={<SendOutlined />}

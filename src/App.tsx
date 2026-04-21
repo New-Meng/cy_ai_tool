@@ -3,7 +3,13 @@ import TitleBar from "./components/titleBar";
 import Sidebar, { MenuKey } from "./components/Sidebar";
 import "./App.css";
 
-import { HashRouter, Routes, Route, useNavigate } from "react-router-dom";
+import {
+  HashRouter,
+  Routes,
+  Route,
+  useNavigate,
+  Navigate,
+} from "react-router-dom";
 import ChatHome from "./page/chatHome";
 import Setting from "./page/setting";
 import CodeView from "./page/codeView";
@@ -34,7 +40,7 @@ const AppContent = () => {
         <Sidebar activeMenu={activeMenu} onMenuChange={onMenuChange} />
         <section className="app-content">
           <Routes>
-            <Route path="/" element={<ChatHome />} />
+            <Route path="/" element={<Navigate to="/chat" />} />
             <Route path="/chat" element={<ChatHome />} />
             <Route path="/setting" element={<Setting />} />
             <Route path="/codeView" element={<CodeView />} />

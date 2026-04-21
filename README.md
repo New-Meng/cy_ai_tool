@@ -24,6 +24,6 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 ### 功能
 
-1. 支持模型、温度切换，上下文管理
+1. 支持模型、温度切换，支持上下文短期记忆
 2. 支持设置豆包、deepseek模型接入(目前AI模型，只支持deepseek和豆包，其中，豆包`/ListFoundationModels`接口，需要ak/sk签名，才能拿到模型列表 + 模型id 犯病的很，方舟平台模型类型选择只提供有限支持)
 3. 通用配置设置

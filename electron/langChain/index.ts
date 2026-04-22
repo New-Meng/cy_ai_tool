@@ -12,7 +12,6 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { MODEL_INFO_MAP } from "../../constant";
-import { initChatModel } from "langchain";
 
 export type CustomChatModelOpenAI = ChatOpenAI & {
   _$modelVender?: number;
@@ -97,7 +96,7 @@ export class SimpleChatbot {
   }
 
   // 获取对应的消息记录
-  getMessageList() {
+  getCurrentMessage() {
     return this.message;
   }
 

@@ -2,6 +2,8 @@ import { ipcMain } from "electron";
 import { SimpleChatbot } from "../langChain";
 import { ResultRt } from "../utils";
 import { modelTemperatureConfig } from "../langChain/modelTemperatureConfig";
+import { CHAT_MESSAGE_LIST } from "../../constant/storeName";
+import { configManagerFactory } from "../config/config-manager";
 
 export const rendererAiMessageController = () => {
   const simpleChatbotIns = new SimpleChatbot();
@@ -48,11 +50,6 @@ export const rendererAiMessageController = () => {
     return ResultRt.success(true);
   });
 
-  ipcMain.handle("getMessageList", async () => {
-    const list = await simpleChatbotIns.getMessageList();
-    return ResultRt.success(list);
-  });
-
   ipcMain.handle("clearCurrentMessage", () => {
     simpleChatbotIns.clearAIModelCurrentMessage();
     return ResultRt.success(true);
@@ -72,5 +69,13 @@ export const rendererAiMessageController = () => {
     } catch (error) {
       return ResultRt.fail(error);
     }
+  });
+
+  ipcMain.handle("saveCurrentMessage", (saveObj: object) => {
+    const res = simpleChatbotIns.getCurrentMessage();
+    const storeManager = configManagerFactory(CHAT_MESSAGE_LIST);
+    storeManager.set(new Date().getTime().toString(), saveObj);
+
+    return ResultRt.success(res);
   });
 };

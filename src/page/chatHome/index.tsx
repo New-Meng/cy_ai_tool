@@ -4,6 +4,7 @@ import {
   DeleteOutlined,
   SwapOutlined,
   PauseOutlined,
+  AuditOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { marked } from "marked";
@@ -157,6 +158,16 @@ const ChatHome = () => {
     setChatList([]);
   };
 
+  const handleSaveCurrentMessage = async () => {
+    const res = await window.ipcRenderer.invoke("saveCurrentMessage");
+    console.log(res, "++??res");
+    if (res.success) {
+      messageApi.success("对话已保存!");
+    } else {
+      messageApi.error(res.message || "对话保存失败!");
+    }
+  };
+
   // 监听返回的流
   const watchAiAnswerStream = () => {
     window.ipcRenderer.on("aiAnswer-ing", (_, chunk) => {
@@ -204,12 +215,6 @@ const ChatHome = () => {
       clearWatchAiAnswer();
     };
   }, []);
-
-  useEffect(() => {
-    window.ipcRenderer.invoke("getMessageList").then((res) => {
-      console.log(res, "++??a");
-    });
-  }, [streamStatus]);
 
   return (
     <>
@@ -341,6 +346,16 @@ const ChatHome = () => {
                   icon={<DeleteOutlined />}
                   variant="text"
                   danger
+                  className="rounded-full"
+                />
+              </Tooltip>
+
+              <Tooltip title="保存当前对话">
+                <Button
+                  onClick={handleSaveCurrentMessage}
+                  size="small"
+                  icon={<AuditOutlined />}
+                  variant="text"
                   className="rounded-full"
                 />
               </Tooltip>

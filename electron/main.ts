@@ -9,6 +9,7 @@ import {
 import { getConfigBasePath } from "./config/path";
 import RegisterShortCutKey from "./utils/registerShortCutKey";
 import { rendererAiMessageController } from "./payloadByMainController/aiMessageController";
+import { initializeDatabase } from "./typeorm";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -119,6 +120,9 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
+
+  // 初始数据库连接
+  initializeDatabase()
   createWindow();
   // 托盘
   createTray();

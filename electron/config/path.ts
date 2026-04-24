@@ -7,7 +7,7 @@ function getConfigBasePath() {
 
   if (app.isPackaged) {
     // 生产环境：在应用所在目录的 config 文件夹
-    basePath = path.join(path.dirname(app.getPath("userData")), "prodConfig");
+    basePath = path.join(path.dirname(app.getPath("exe")), "prodConfig");
   } else {
     // 开发环境：在项目根目录的 config 文件夹
     basePath = path.join(process.cwd(), "devConfig");

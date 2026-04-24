@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "chcp 65001 >$null && vite",
     "build": "tsc && vite build && electron-builder",
+    "rebuilder:sqlite3": "npx electron-rebuild -f -w better-sqlite3",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -25,7 +26,8 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.13.1",
     "simple-git": "^3.33.0",
-    "tailwindcss": "^4.2.1"
+    "tailwindcss": "^4.2.1",
+    "typeorm": "^0.3.28"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.4",

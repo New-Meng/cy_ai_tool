@@ -17,6 +17,11 @@ export default defineConfig({
           build: {
             sourcemap: true,
             minify: false,
+            rollupOptions: {
+              // typeorm 会打包一堆无用驱动，其中google-cloud的，会报错
+              // 脑残设计，要一个个屏蔽掉
+              external: ["typeorm", "better-sqlite3"],
+            },
           },
         },
       },

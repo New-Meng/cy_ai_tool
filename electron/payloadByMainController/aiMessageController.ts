@@ -2,8 +2,7 @@ import { ipcMain } from "electron";
 import { SimpleChatbot } from "../langChain";
 import { ResultRt } from "../utils";
 import { modelTemperatureConfig } from "../langChain/modelTemperatureConfig";
-import { CHAT_MESSAGE_LIST } from "../../constant/storeName";
-import { configManagerFactory } from "../config/config-manager";
+import { saveChatMessage } from "../typeorm/controller/chatMessageController";
 
 export const rendererAiMessageController = () => {
   const simpleChatbotIns = new SimpleChatbot();
@@ -71,10 +70,14 @@ export const rendererAiMessageController = () => {
     }
   });
 
-  ipcMain.handle("saveCurrentMessage", (saveObj: object) => {
+  ipcMain.handle("saveCurrentMessage", async () => {
     const res = simpleChatbotIns.getCurrentMessage();
-    const storeManager = configManagerFactory(CHAT_MESSAGE_LIST);
-    storeManager.set(new Date().getTime().toString(), saveObj);
+
+    const curMessage = await res.getMessages();
+
+    const jsonMessage = curMessage.map((item) => item.toJSON());
+    const tempName = jsonMessage[0].name?.slice(0, 8);
+    await saveChatMessage(JSON.stringify(jsonMessage), tempName as string);
 
     return ResultRt.success(res);
   });

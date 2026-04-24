@@ -15,6 +15,9 @@ dist-ssr
 # 打包后的产物
 release
 
+#数据库文件
+database.sqlite
+
 # Editor directories and files
 .vscode/*
 !.vscode/launch.json

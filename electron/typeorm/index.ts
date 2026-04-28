@@ -2,7 +2,7 @@ import { app } from "electron";
 import { fileURLToPath } from 'url'
 import path from "path";
 import { DataSource } from "typeorm";
-import { ChatMessageEntity } from "./entity/ChatMessage";
+import { ChatMessageEntity } from "./entity/ChatMessageEntity";
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

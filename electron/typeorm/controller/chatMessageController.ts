@@ -1,5 +1,5 @@
 import { AppDataSource } from "../index";
-import { ChatMessageEntity } from "../entity/ChatMessage";
+import { ChatMessageEntity } from "../entity/ChatMessageEntity";
 import { ResultRt } from "../../utils";
 
 // 获取 Repository
@@ -21,9 +21,24 @@ export const getChatMessageList = async () => {
   );
 };
 
-export const saveChatMessage = async (chatMessage: string, name: string) => {
+export const saveChatMessage = async (
+  sessionId: string,
+  chatMessage: string,
+  name: string,
+) => {
   try {
-    await chatMessageRepo.save({ message: chatMessage, name });
+    const findRes = await chatMessageRepo.findOne({
+      where: { sessionId },
+    });
+
+    if (findRes) {
+      await chatMessageRepo.update(findRes.id, {
+        message: chatMessage,
+      });
+    } else {
+      await chatMessageRepo.save({ sessionId, name, message: chatMessage });
+    }
+
     return ResultRt.success(true);
   } catch (error) {
     return ResultRt.fail(error as Error);

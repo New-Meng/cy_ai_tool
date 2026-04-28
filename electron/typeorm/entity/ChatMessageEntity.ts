@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from "typeorm";
 
 @Entity()
@@ -11,6 +12,10 @@ export class ChatMessageEntity {
   /** 用户ID，主键自增 */
   @PrimaryGeneratedColumn()
   id!: number;
+
+  @Column({ type: "varchar" })
+  @Index()
+  sessionId!: string;
 
   /** 对话名称 */
   @Column({ type: "varchar" })

@@ -3,6 +3,7 @@ import { SimpleChatbot } from "../langChain";
 import { ResultRt } from "../utils";
 import { modelTemperatureConfig } from "../langChain/modelTemperatureConfig";
 import { saveChatMessage } from "../typeorm/controller/chatMessageController";
+import { Serialized } from "@langchain/core/load/serializable";
 
 export const rendererAiMessageController = () => {
   const simpleChatbotIns = new SimpleChatbot();
@@ -70,14 +71,36 @@ export const rendererAiMessageController = () => {
     }
   });
 
-  ipcMain.handle("saveCurrentMessage", async () => {
+  ipcMain.handle("saveCurrentMessage", async (_, sessionId: string) => {
     const res = simpleChatbotIns.getCurrentMessage();
 
     const curMessage = await res.getMessages();
 
-    const jsonMessage = curMessage.map((item) => item.toJSON());
-    const tempName = jsonMessage[0].name?.slice(0, 8);
-    await saveChatMessage(JSON.stringify(jsonMessage), tempName as string);
+    const jsonMessage: {
+      id: string;
+      kwargs: Record<string, string>;
+      lc: number;
+      type: string;
+    }[] = curMessage.map((item) => {
+      return item.toJSON() as Serialized & {
+        id: string;
+        kwargs: Record<string, string>;
+        lc: number;
+        type: string;
+      };
+    });
+    const tempName = jsonMessage[0]?.kwargs?.content?.slice(0, 8);
+
+    await saveChatMessage(
+      sessionId
+        ? sessionId
+        : new Date().valueOf() +
+            "-" +
+            Number(Math.random().toFixed(3)) * 1000 +
+            "",
+      JSON.stringify(jsonMessage),
+      tempName as string,
+    );
 
     return ResultRt.success(res);
   });

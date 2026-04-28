@@ -18,8 +18,7 @@ export default defineConfig({
             sourcemap: true,
             minify: false,
             rollupOptions: {
-              // typeorm 会打包一堆无用驱动，其中google-cloud的，会报错
-              // 脑残设计，要一个个屏蔽掉
+              // 直接指定，无需vite打包得模块，主进程模块一般不需要打包
               external: ["typeorm", "better-sqlite3"],
             },
           },

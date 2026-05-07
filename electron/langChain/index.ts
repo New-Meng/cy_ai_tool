@@ -12,6 +12,7 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 import { MODEL_INFO_MAP } from "../../constant";
+import { BaseMessage } from "@langchain/core/messages";
 
 export type CustomChatModelOpenAI = ChatOpenAI & {
   _$modelVender?: number;
@@ -24,6 +25,7 @@ export class SimpleChatbot {
   currentModel: CustomChatModelOpenAI | null;
   modelConfigList: Record<string, ModelItemInterace>;
   baseTemperature: number = 0.7;
+  sessionId: string = "";
   // 用于记录请求集合，用于取消请求，只有stream方式，可以 中断，也只有他中断有意义
   // stream 有建立post 长链接  invoke是一次性请求
   abortController: Map<string, AbortController> = new Map();
@@ -93,6 +95,24 @@ export class SimpleChatbot {
         return this.modelMap[modelConfig.id];
       }
     }
+  }
+
+  // 更新模型参数，并重新生成模型
+  resetModel() {
+    const settingStore = configManagerFactory(SETTING_MODEL_LIST);
+    this.modelConfigList = (
+      settingStore.get<ModelItemInterace[]>("modelList") || []
+    ).reduce(
+      (prev, item) => {
+        prev[item.id] = item;
+        return prev;
+      },
+      {} as Record<string, ModelItemInterace>,
+    );
+
+    Object.keys(this.modelMap).forEach((key) => {
+      this.modelMap[key] = this.getChatModel(this.modelConfigList[key], true);
+    });
   }
 
   // 获取对应的消息记录
@@ -204,5 +224,12 @@ export class SimpleChatbot {
     // 转换为 JSON 字符串
     const jsonMessage = JSON.stringify(messages);
     return jsonMessage;
+  };
+
+  changeChat = async (message: BaseMessage[], sessionId: string) => {
+    this.sessionId = sessionId;
+    this.message = new InMemoryChatMessageHistory(message);
+    this.initChain();
+    return this.message;
   };
 }

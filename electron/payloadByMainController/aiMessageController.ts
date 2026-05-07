@@ -2,8 +2,14 @@ import { ipcMain } from "electron";
 import { SimpleChatbot } from "../langChain";
 import { ResultRt } from "../utils";
 import { modelTemperatureConfig } from "../langChain/modelTemperatureConfig";
-import { saveChatMessage } from "../typeorm/controller/chatMessageController";
+import {
+  getChatMessageList,
+  saveChatMessage,
+  deleteChatMessage,
+} from "../typeorm/controller/chatMessageController";
 import { Serialized } from "@langchain/core/load/serializable";
+import { load } from "@langchain/core/load";
+import { BaseMessage } from "@langchain/core/messages";
 
 export const rendererAiMessageController = () => {
   const simpleChatbotIns = new SimpleChatbot();
@@ -27,6 +33,38 @@ export const rendererAiMessageController = () => {
         event.sender.send("aiAnswer-ing", chunk.content);
       }
       event.sender.send("aiAnswer-end");
+      if (simpleChatbotIns.sessionId) {
+        // 如果又seesionId, 需要自动保存当前对话
+        const res = simpleChatbotIns.getCurrentMessage();
+
+        const curMessage = await res.getMessages();
+
+        const jsonMessage: {
+          id: string;
+          kwargs: Record<string, string>;
+          lc: number;
+          type: string;
+        }[] = curMessage.map((item) => {
+          return item.toJSON() as Serialized & {
+            id: string;
+            kwargs: Record<string, string>;
+            lc: number;
+            type: string;
+          };
+        });
+        const tempName = jsonMessage[0]?.kwargs?.content?.slice(0, 12);
+
+        await saveChatMessage(
+          simpleChatbotIns.sessionId
+            ? simpleChatbotIns.sessionId
+            : new Date().valueOf() +
+                "-" +
+                Number(Math.random().toFixed(3)) * 1000 +
+                "",
+          JSON.stringify(jsonMessage),
+          tempName as string,
+        );
+      }
       return ResultRt.success(true);
     } catch (error) {
       console.log(error, "++??kk这里的错误");
@@ -52,6 +90,7 @@ export const rendererAiMessageController = () => {
 
   ipcMain.handle("clearCurrentMessage", () => {
     simpleChatbotIns.clearAIModelCurrentMessage();
+    simpleChatbotIns.initChain();
     return ResultRt.success(true);
   });
 
@@ -103,5 +142,50 @@ export const rendererAiMessageController = () => {
     );
 
     return ResultRt.success(res);
+  });
+
+  ipcMain.handle("getChatMessageHistoryList", async () => {
+    try {
+      const res = await getChatMessageList();
+      return ResultRt.success(res.data);
+    } catch (error) {
+      return ResultRt.fail(error as Error);
+    }
+  });
+
+  ipcMain.handle(
+    "changeChatMessageHistory",
+    async (_, message: { name: string; message: []; sessionId: string }) => {
+      try {
+        const messagesParse = await Promise.all<BaseMessage>(
+          message?.message?.map((item: string) => {
+            console.log(item, "++??item");
+            return load(JSON.stringify(item));
+          }),
+        );
+        const rtMessage = await simpleChatbotIns.changeChat(
+          messagesParse,
+          message.sessionId,
+        );
+        return ResultRt.success(await rtMessage.getMessages());
+      } catch (error) {
+        return ResultRt.fail(error as Error);
+      }
+    },
+  );
+
+  ipcMain.handle("createNewChat", async () => {
+    await simpleChatbotIns.clearAIModelCurrentMessage();
+    await simpleChatbotIns.initChain();
+    return ResultRt.success(true);
+  });
+
+  ipcMain.handle("deleteChatMessageHistory", async (_, sessionId: string) => {
+    try {
+      await deleteChatMessage(sessionId);
+      return ResultRt.success(true);
+    } catch (error) {
+      return ResultRt.fail(error as Error);
+    }
   });
 };

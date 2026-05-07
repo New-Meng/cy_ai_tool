@@ -1,4 +1,11 @@
 import OpenAI from "openai";
+
+export interface ResultRtType<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
 // ipc 通信状态
 export class ResultRt {
   static success<T>(data: T) {

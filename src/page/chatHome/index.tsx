@@ -6,13 +6,16 @@ import {
   PauseOutlined,
   AuditOutlined,
 } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { marked } from "marked";
 import styles from "./index.module.css";
 import { ModelItemInterace } from "../../../electron/payloadByMainController/settingController";
 import { modelTemperatureConfig } from "../../../electron/langChain/modelTemperatureConfig";
 
 import { useAutoScrollBottom } from "../../hook";
+import HistoryMessageList, {
+  HistoryMessageListRef,
+} from "./HistoryMessageList";
 
 marked.use({
   gfm: true, // 支持表格、删除线、任务列表
@@ -56,6 +59,9 @@ const ChatHome = () => {
   const [baseTemperatureValue, setBaseTemperatureValue] = useState(1);
   const [modelList, setModelList] = useState<ModelItemInterace[]>([]);
   const [curModel, setCurModel] = useState<string | undefined>(undefined);
+  const historyMessageListRef = useRef<HistoryMessageListRef>(null);
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
+
   const [chatList, setChatList] = useState<
     {
       type: "ai" | "human";
@@ -92,6 +98,7 @@ const ChatHome = () => {
       { type: "ai", content: "<span></span>" }, // 预留元素，作为光点闪烁
     ]);
 
+    // 需要判断是否有id，有的话，自动保存到历史记录中
     window.ipcRenderer.invoke("askMessageStream", textValue);
     setTextValue(""); // 发送后清空输入框
     setStreamStatus(1); // 光点闪烁，让人觉得正在响应
@@ -159,9 +166,13 @@ const ChatHome = () => {
   };
 
   const handleSaveCurrentMessage = async () => {
-    const res = await window.ipcRenderer.invoke("saveCurrentMessage");
+    const res = await window.ipcRenderer.invoke(
+      "saveCurrentMessage",
+      sessionId || "",
+    );
     console.log(res, "++??res");
     if (res.success) {
+      await historyMessageListRef.current?.initHistoryList();
       messageApi.success("对话已保存!");
     } else {
       messageApi.error(res.message || "对话保存失败!");
@@ -207,6 +218,32 @@ const ChatHome = () => {
     window.ipcRenderer.invoke("clearCurrentMessage");
   };
 
+  const changeChatMessageHistory = async (item: {
+    name: string;
+    message: string;
+    sessionId?: string;
+  }) => {
+    const res = await window.ipcRenderer.invoke(
+      "changeChatMessageHistory",
+      item,
+    );
+
+    setSessionId(item.sessionId);
+
+    setChatList(res.data || []);
+    console.log(res);
+  };
+
+  const handleCreateNewChat = async () => {
+    try {
+      await window.ipcRenderer.invoke("createNewChat");
+      setChatList([]);
+    } catch (error: unknown) {
+      console.log(error);
+      messageApi.error("创建新对话失败!");
+    }
+  };
+
   useEffect(() => {
     initModel();
     watchAiAnswerStream();
@@ -219,45 +256,53 @@ const ChatHome = () => {
   return (
     <>
       {mesageContext}
-      <div className="w-full h-full flex flex-col gap-5 justify-between items-center p-4 text-[14px]">
-        <div
-          ref={scrollRef}
-          className={`w-full flex-1 overflow-y-auto ${styles["custom-scrollbar"]}`}
-        >
-          {chatList.map((item, index) => {
-            if (item?.type == "human") {
-              return (
-                <div
-                  key={index}
-                  className="user-ask flex justify-end items-center w-full h-auto box-border px-3 mb-5"
-                >
+      <div className=" w-full h-full flex flex-col gap-5 justify-between items-center p-4 text-[14px]">
+        <div className={`w-full flex-1 flex justify-center items-center`}>
+          <HistoryMessageList
+            handleCreateNewChat={handleCreateNewChat}
+            changeChatMessageHistory={changeChatMessageHistory}
+            ref={historyMessageListRef}
+          ></HistoryMessageList>
+          <div
+            className={`flex-1 h-[calc(100vh-300px)] overflow-y-auto ${styles["custom-scrollbar"]}`}
+            ref={scrollRef}
+          >
+            {chatList?.map((item, index) => {
+              if (item?.type == "human") {
+                return (
                   <div
-                    className={`max-w-[80%] bg-[#f5f5f5] rounded-2xl px-4 py-2 ${styles.markdown}`} // 添加气泡背景色、圆角和内边距，并应用 Markdown 样式
+                    key={index}
+                    className="user-ask flex justify-end items-center w-full h-auto box-border px-3 mb-5"
+                  >
+                    <div
+                      className={`max-w-[80%] bg-[#f5f5f5] rounded-2xl px-4 py-2 ${styles.markdown}`} // 添加气泡背景色、圆角和内边距，并应用 Markdown 样式
+                      dangerouslySetInnerHTML={{
+                        __html: marked.parse(item.content) as string,
+                      }}
+                    ></div>
+                  </div>
+                );
+              } else {
+                return (
+                  <div
+                    key={index}
+                    className={` ${streamStatus == 1 ? "is-generating" : ""} custom-ai-answer w-full h-auto box-border p-3 ${styles.markdown}`} // 应用 AI 答案的 Markdown 样式
                     dangerouslySetInnerHTML={{
                       __html: marked.parse(item.content) as string,
                     }}
-                  ></div>
-                </div>
-              );
-            } else {
-              return (
-                <div
-                  key={index}
-                  className={` ${streamStatus == 1 ? "is-generating" : ""} custom-ai-answer w-full h-auto box-border p-3 ${styles.markdown}`} // 应用 AI 答案的 Markdown 样式
-                  dangerouslySetInnerHTML={{
-                    __html: marked.parse(item.content) as string,
-                  }}
-                />
-              );
-            }
-          })}
+                  />
+                );
+              }
+            })}
 
-          {chatList.length == 0 && (
-            <div className="w-full h-full flex justify-center items-center text-center text-primary-1 text-[14px]">
-              若天有雨，我亦留此地😀
-            </div>
-          )}
+            {chatList?.length == 0 && (
+              <div className="w-full h-full flex justify-center items-center text-center text-primary-1 text-[14px]">
+                若天有雨，我亦留此地😀
+              </div>
+            )}
+          </div>
         </div>
+
         <div className="w-full border border-primary-1 rounded-2xl bg-white p-2 flex flex-col">
           <Input.TextArea
             placeholder="来开始聊天吧"

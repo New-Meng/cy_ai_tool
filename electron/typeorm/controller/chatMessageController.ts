@@ -7,7 +7,15 @@ const chatMessageRepo = AppDataSource.getRepository(ChatMessageEntity);
 
 export const getChatMessageList = async () => {
   const dbRes = await chatMessageRepo.find({
-    select: ["id", "name", "message", "isDelete", "createTime", "updateTime"],
+    select: [
+      "id",
+      "name",
+      "message",
+      "isDelete",
+      "createTime",
+      "updateTime",
+      "sessionId",
+    ],
   });
 
   return ResultRt.success(
@@ -56,13 +64,16 @@ export const updateChatMessage = async (id: number, message: string) => {
   }
 };
 
-export const deleteChatMessage = async (id: number) => {
+export const deleteChatMessage = async (sessionId: string) => {
   try {
-    await chatMessageRepo.update(id, {
-      isDelete: true,
-    });
+    await chatMessageRepo.update(
+      { sessionId: sessionId },
+      {
+        isDelete: true,
+      },
+    );
     // 刷新缓存
-    const newRes = await chatMessageRepo.findOne({ where: { id } });
+    const newRes = await chatMessageRepo.findOne({ where: { sessionId } });
     return ResultRt.success(newRes);
   } catch (error) {
     return ResultRt.fail(error as Error);

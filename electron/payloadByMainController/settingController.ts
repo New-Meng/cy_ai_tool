@@ -5,6 +5,7 @@ import { removeModelUrlAndKey, ResultRt } from "../utils";
 import { getOpenAIClient } from "../lib/aiClient";
 import ShortcutKeyManager from "../utils/registerShortCutKey";
 import { MODEL_NAME_MAP } from "../../constant";
+import { SimpleChatbot } from "../langChain";
 
 export interface ModelItemInterace {
   modelName: string;
@@ -19,6 +20,7 @@ export interface ModelItemInterace {
 
 export const rendererSettingController = () => {
   ipcMain.handle("add-model-item", (event, args) => {
+    const simpleChatbotIns = new SimpleChatbot();
     return new Promise((rev, rej) => {
       try {
         console.log(event, args, "++??params");
@@ -52,13 +54,13 @@ export const rendererSettingController = () => {
 
         if (isUpdateOperate) {
           settingStore.set("modelList", modelList);
-
+          // 重新初始化模型链
           return rev(ResultRt.success(modelList));
         } else {
           args.id = new Date().valueOf() + modelList.length;
           modelList.push(args);
           settingStore.set("modelList", modelList);
-
+          simpleChatbotIns.resetModel();
           return rev(ResultRt.success(modelList));
         }
       } catch (error) {

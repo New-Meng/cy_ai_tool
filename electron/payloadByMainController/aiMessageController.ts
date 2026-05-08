@@ -6,6 +6,7 @@ import {
   getChatMessageList,
   saveChatMessage,
   deleteChatMessage,
+  getChatMessageItem,
 } from "../typeorm/controller/chatMessageController";
 import { Serialized } from "@langchain/core/load/serializable";
 import { load } from "@langchain/core/load";
@@ -128,7 +129,7 @@ export const rendererAiMessageController = () => {
         type: string;
       };
     });
-    const tempName = jsonMessage[0]?.kwargs?.content?.slice(0, 8);
+    const tempName = jsonMessage[0]?.kwargs?.content?.slice(0, 15);
 
     await saveChatMessage(
       sessionId
@@ -157,17 +158,22 @@ export const rendererAiMessageController = () => {
     "changeChatMessageHistory",
     async (_, message: { name: string; message: []; sessionId: string }) => {
       try {
-        const messagesParse = await Promise.all<BaseMessage>(
-          message?.message?.map((item: string) => {
-            console.log(item, "++??item");
-            return load(JSON.stringify(item));
-          }),
-        );
-        const rtMessage = await simpleChatbotIns.changeChat(
-          messagesParse,
-          message.sessionId,
-        );
-        return ResultRt.success(await rtMessage.getMessages());
+        // 先查库，获取消息
+        const findOneRes = await getChatMessageItem(message.sessionId);
+        if (findOneRes.data) {
+          const messageList = JSON.parse(findOneRes?.data?.message || "[]");
+          const messagesParse = await Promise.all<BaseMessage>(
+            messageList?.map((item: string) => {
+              console.log(item, "++??item");
+              return load(JSON.stringify(item));
+            }),
+          );
+          const rtMessage = await simpleChatbotIns.changeChat(
+            messagesParse,
+            message.sessionId,
+          );
+          return ResultRt.success(await rtMessage.getMessages());
+        }
       } catch (error) {
         return ResultRt.fail(error as Error);
       }

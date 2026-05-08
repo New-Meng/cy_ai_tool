@@ -29,6 +29,13 @@ export const getChatMessageList = async () => {
   );
 };
 
+export const getChatMessageItem = async (sessionId: string) => {
+  const findRes = await chatMessageRepo.findOne({
+    where: { sessionId },
+  });
+  return ResultRt.success(findRes);
+}
+
 export const saveChatMessage = async (
   sessionId: string,
   chatMessage: string,

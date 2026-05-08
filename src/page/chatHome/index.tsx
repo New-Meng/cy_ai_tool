@@ -85,7 +85,9 @@ const ChatHome = () => {
   };
 
   const handleSendText = async () => {
-    console.log(textValue, "++??文字");
+    if (!textValue.trim()) {
+      return;
+    }
     if (!curModel) {
       messageApi.error("请选择模型!");
       return;
@@ -237,6 +239,7 @@ const ChatHome = () => {
   const handleCreateNewChat = async () => {
     try {
       await window.ipcRenderer.invoke("createNewChat");
+      setSessionId(undefined);
       setChatList([]);
     } catch (error: unknown) {
       console.log(error);
@@ -409,6 +412,7 @@ const ChatHome = () => {
             <div>
               {(streamStatus == 0 || streamStatus == 2) && (
                 <Button
+                  disabled={!textValue.trim()}
                   type="primary"
                   icon={<SendOutlined />}
                   className="rounded-full"

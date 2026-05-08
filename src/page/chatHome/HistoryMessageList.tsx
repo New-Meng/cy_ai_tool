@@ -93,12 +93,10 @@ const HistoryMessageList = forwardRef<
               return (
                 <div
                   key={index}
+                  onClick={() => changeHistoryChat(item)}
                   className="px-1 py-1 w-full flex justify-between items-center cursor-pointer rounded-md hover:bg-[#e5d0d0]"
                 >
-                  <div
-                    className="text-ellipsis flex-nowrap text-nowrap overflow-hidden whitespace-nowrap"
-                    onClick={() => changeHistoryChat(item)}
-                  >
+                  <div className="text-ellipsis flex-nowrap text-nowrap overflow-hidden whitespace-nowrap">
                     {item.name}
                   </div>
                   <div

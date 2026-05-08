@@ -215,6 +215,7 @@ export class SimpleChatbot {
   }
 
   async clearAIModelCurrentMessage() {
+    this.sessionId = "";
     await this.message.clear();
   }
 

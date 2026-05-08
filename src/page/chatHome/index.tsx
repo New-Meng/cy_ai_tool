@@ -1,7 +1,6 @@
 import { Input, Button, Tooltip, Select, message } from "antd";
 import {
   SendOutlined,
-  DeleteOutlined,
   SwapOutlined,
   PauseOutlined,
   AuditOutlined,
@@ -157,16 +156,6 @@ const ChatHome = () => {
     }
   };
 
-  const handleClearMessage = async () => {
-    if (streamStatus == 1) {
-      messageApi.warning("请先停止当前对话!");
-      return;
-    }
-    setTextValue("");
-    await window.ipcRenderer.invoke("clearCurrentMessage");
-    setChatList([]);
-  };
-
   const handleSaveCurrentMessage = async () => {
     const res = await window.ipcRenderer.invoke(
       "saveCurrentMessage",
@@ -259,9 +248,11 @@ const ChatHome = () => {
   return (
     <>
       {mesageContext}
-      <div className=" w-full h-full flex flex-col gap-5 justify-between items-center p-4 text-[14px]">
+      <div className=" w-full w-min-[550px] h-full flex flex-col gap-5 justify-between items-center p-4 text-[14px]">
         <div className={`w-full flex-1 flex justify-center items-center`}>
           <HistoryMessageList
+            streamStatus={streamStatus}
+            sessionId={sessionId}
             handleCreateNewChat={handleCreateNewChat}
             changeChatMessageHistory={changeChatMessageHistory}
             ref={historyMessageListRef}
@@ -386,17 +377,6 @@ const ChatHome = () => {
                   };
                 })}
               />
-
-              <Tooltip title="清空对话">
-                <Button
-                  onClick={handleClearMessage}
-                  size="small"
-                  icon={<DeleteOutlined />}
-                  variant="text"
-                  danger
-                  className="rounded-full"
-                />
-              </Tooltip>
 
               <Tooltip title="保存当前对话">
                 <Button

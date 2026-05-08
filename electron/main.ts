@@ -44,6 +44,7 @@ let tray;
 function createWindow() {
   win = new BrowserWindow({
     width: 1000,
+    minWidth: 1000,
     height: 700,
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
@@ -120,9 +121,8 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
-
   // 初始数据库连接
-  initializeDatabase()
+  initializeDatabase();
   createWindow();
   // 托盘
   createTray();

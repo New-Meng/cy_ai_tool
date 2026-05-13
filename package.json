@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.2.1",
     "antd": "^6.3.2",
     "better-sqlite3": "^12.9.0",
+    "dayjs": "^1.11.20",
     "electron-store": "^11.0.2",
     "langchain": "^1.2.34",
     "marked": "^18.0.0",

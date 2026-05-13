@@ -1,11 +1,13 @@
 import { app } from "electron";
-import { fileURLToPath } from 'url'
+import { fileURLToPath } from "url";
 import path from "path";
 import { DataSource } from "typeorm";
 import { ChatMessageEntity } from "./entity/ChatMessageEntity";
+import { CodeViewListEntity } from "./entity/CodeViewListEntity";
+import { ViewProjectEntity } from "./entity/ViewProjectEntity";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const nativeBinding = path.join(
   __dirname,
@@ -29,7 +31,7 @@ export const AppDataSource = new DataSource({
   // 显式指定原生模块路径
   nativeBinding: nativeBinding,
 
-  entities: [ChatMessageEntity],
+  entities: [ChatMessageEntity, CodeViewListEntity, ViewProjectEntity],
   synchronize: true, // 开发环境可用，生产环境建议关闭
   logging: true,
 

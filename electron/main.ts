@@ -10,6 +10,7 @@ import { getConfigBasePath } from "./config/path";
 import RegisterShortCutKey from "./utils/registerShortCutKey";
 import { rendererAiMessageController } from "./payloadByMainController/aiMessageController";
 import { initializeDatabase } from "./typeorm";
+import { commandContrllerFun } from "./payloadByMainController/commandContrller";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -131,6 +132,9 @@ app.whenReady().then(() => {
   // 挂载通信方法
   // app级别操作
   rendererAppController();
+
+  // 命令行操作
+  commandContrllerFun()
 
   // 设置通信操作
   rendererSettingController();

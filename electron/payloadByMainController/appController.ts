@@ -1,4 +1,7 @@
-import { app, ipcMain, BrowserWindow } from "electron";
+import { app, ipcMain, BrowserWindow, dialog } from "electron";
+import path from "path";
+import { getGitProjectUuid } from "../lib/gitOperate";
+import { ResultRt } from "../utils";
 
 export const rendererAppController = () => {
   // 关闭应用
@@ -32,6 +35,29 @@ export const rendererAppController = () => {
       win.unmaximize();
     } else {
       win?.maximize();
+    }
+  });
+
+  ipcMain.handle("select-file", async () => {
+    try {
+      const res = await dialog.showOpenDialog({
+        properties: ["openDirectory"],
+      });
+      if (res.filePaths?.length === 0) {
+        return ResultRt.success(null);
+      }
+      const uuid = await getGitProjectUuid(res.filePaths[0]);
+      return ResultRt.success({
+        fileName: path.basename(res.filePaths[0]),
+        path: res.canceled ? null : res.filePaths[0],
+        uuid,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        return ResultRt.fail(error.message);
+      } else {
+        return ResultRt.fail(error);
+      }
     }
   });
 };

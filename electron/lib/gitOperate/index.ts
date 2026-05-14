@@ -40,14 +40,12 @@ export const getGitCommitHistory = async (
     exec(command.join(" "), (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error.message}`);
-        reject(ResultRt.fail(error.message));
-        return;
+        return reject(ResultRt.fail(error.message));
       }
 
       if (stderr) {
         console.error(`exec error: ${stderr}`);
-        reject(ResultRt.fail(stderr));
-        return;
+        return reject(ResultRt.fail(stderr));
       }
 
       const tempArr = stdout

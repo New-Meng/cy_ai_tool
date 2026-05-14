@@ -1,18 +1,36 @@
-import { Button, Popconfirm, message } from "antd";
-import { CloseCircleOutlined } from "@ant-design/icons";
+import { Button, Input, Popconfirm, Select, Tooltip, message } from "antd";
+import {
+  CloseCircleOutlined,
+  SendOutlined,
+  SwapOutlined,
+} from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import styles from "../chatHome/index.module.css";
 import type { ProjectItem } from "../../../electron/dto/codeViewDto";
+
+type HashItem = {
+  hash: string;
+  message: string;
+  date: string;
+  author: string;
+};
 
 const CodeView = () => {
   const [messageApi, messageContext] = message.useMessage({
     top: 60,
     maxCount: 3,
   });
+  const [curModel, setCurModel] = useState<string>("");
   // 模拟项目列表数据
   const [projectList, setProjectList] = useState<ProjectItem[]>([]);
 
   const [activeProjectId, setActiveProjectId] = useState<number>(0);
+
+  const [hashList, setHashList] = useState<HashItem[]>([]);
+
+  const [modelList, setModelList] = useState([]);
+
+  const [textValue, setTextValue] = useState<string>("");
 
   const initList = async () => {
     const res = await window.ipcRenderer.invoke("getProjectList");
@@ -77,12 +95,25 @@ const CodeView = () => {
     });
     console.log(res, "++??res");
     if (res.success) {
-      messageApi.success("切换成功");
+      setHashList(res.data);
+      messageApi.success("项目选择成功");
 
       setActiveProjectId(item.id);
     } else {
       messageApi.error(res.message.message ? res.message.message : res.message);
     }
+  };
+
+  const handleAddCodeViewPrompt = () => {
+    console.log("++??add");
+  };
+
+  const handleSwitchModel = (value: string) => {
+    setCurModel(value);
+  };
+
+  const handleSendCodeView = () => {
+    console.log("logsend");
   };
 
   useEffect(() => {
@@ -157,6 +188,75 @@ const CodeView = () => {
         </div>
         <div className="flex-1 h-full bg-white ml-2 rounded-xl shadow-sm border border-[#e8e8e8]">
           {/* 右侧内容区 */}
+          {/* ai评分的地方 */}
+          <div className="flex-1 w-full h-[calc(100%-160px)]"></div>
+
+          <div className="w-full h-[160px] border border-primary-1 rounded-2xl bg-white p-2 flex flex-col">
+            <Input.TextArea
+              placeholder="请输入代码审核规则"
+              variant="borderless"
+              className={`w-full flex-1 ${styles["custom-scrollbar"]}`}
+              style={{ backgroundColor: "transparent", resize: "none" }}
+              autoSize={{ minRows: 4 }}
+              value={textValue}
+              onChange={(val: React.ChangeEvent<HTMLTextAreaElement>) => {
+                setTextValue(val.target.value);
+              }}
+              onKeyDown={(e) => {
+                // 敲击回车时发送（如果不按 Shift）
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault(); // 阻止默认的回车换行行为
+                  e.stopPropagation();
+
+                  // 如果输入为空，则不发送
+                  if (!textValue.trim()) return;
+
+                  handleAddCodeViewPrompt();
+                }
+              }}
+            />
+            <div className="flex justify-between items-center px-2 py-1">
+              <div className="flex gap-2 items-center">
+                <Tooltip title="切换模型">
+                  <Select
+                    value={curModel}
+                    placement="topLeft"
+                    suffixIcon={<SwapOutlined />}
+                    style={{
+                      width: 150,
+                      height: "25px",
+                      background: "#fff",
+                      fontSize: "12px",
+                    }}
+                    dropdownStyle={{ fontSize: "12px" }}
+                    onChange={(val: string) => handleSwitchModel(val)}
+                    options={Object.values(modelList).map((item) => {
+                      return {
+                        label: (
+                          <span style={{ fontSize: "12px" }}>
+                            {item?.modelName || ""}
+                          </span>
+                        ),
+                        value: item?.id || "",
+                      };
+                    })}
+                  />
+                </Tooltip>
+              </div>
+
+              <div>
+                <Button
+                  disabled={!textValue.trim()}
+                  type="primary"
+                  icon={<SendOutlined />}
+                  className="rounded-full"
+                  onClick={handleSendCodeView}
+                >
+                  发送
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </>

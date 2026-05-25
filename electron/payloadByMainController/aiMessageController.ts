@@ -11,6 +11,7 @@ import {
 import { Serialized } from "@langchain/core/load/serializable";
 import { load } from "@langchain/core/load";
 import { BaseMessage } from "@langchain/core/messages";
+import { getGitDiffFileText } from "../lib/gitOperate";
 
 export const rendererAiMessageController = () => {
   const simpleChatbotIns = new SimpleChatbot();
@@ -81,6 +82,36 @@ export const rendererAiMessageController = () => {
     simpleChatbotIns.stopMessageCurrentMessage(modelId);
     return ResultRt.success(true);
   });
+
+  ipcMain.handle(
+    "sendCodeViewStream",
+    async (
+      event,
+      options: {
+        filePath: string;
+        hash: string;
+        userPromptText: string;
+      },
+    ) => {
+      const { filePath, hash, userPromptText } = options;
+
+      const gitDiffCodeText = (await getGitDiffFileText(filePath, hash)) || {};
+
+      if (gitDiffCodeText.success) {
+        const res = await simpleChatbotIns.codeViewStream({
+          userPromptText,
+          codeText: gitDiffCodeText.data || "",
+        });
+
+        for await (const chunk of res) {
+          event.sender.send("aiAnswer-ing", chunk.content);
+        }
+        event.sender.send("aiAnswer-end");
+      }
+
+      return ResultRt.success(true);
+    },
+  );
 
   ipcMain.handle("switchAIModel", (_, modelId: string) => {
     if (!modelId) {

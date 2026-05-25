@@ -32,7 +32,8 @@ export class SimpleChatbot {
   message: InMemoryChatMessageHistory;
 
   prompt = ChatPromptTemplate.fromMessages([
-    ["system", ""],
+    // 预留系统级别的提示变量，方便后面给定系统级别提示
+    ["system", "{system_prompt}"],
     new MessagesPlaceholder("history"), // 这里的名字要和下面 historyMessagesKey 一致
     ["human", "{content}"], // 这里的变量名要和下面 inputMessagesKey 一致 content代表用户
   ]);
@@ -200,7 +201,7 @@ export class SimpleChatbot {
       throw new Error("没有生成chain");
     } else {
       const tempStream = await this.chatChain.stream(
-        { content },
+        { content, system_prompt: "" },
         {
           configurable: { sessionId: "default" },
           signal: abortController.signal,
@@ -238,4 +239,39 @@ export class SimpleChatbot {
     this.initChain();
     return this.message;
   };
+
+  async codeViewStream(options: {
+    userPromptText?: string;
+    codeText?: string;
+  }) {
+    const { userPromptText, codeText } = options;
+
+    if (!codeText?.trim()) {
+      throw new Error("没有传入代码");
+    }
+
+    const abortController = new AbortController();
+    this.abortController.set(
+      this.currentModel?._$modelId || "",
+      abortController,
+    );
+
+    if (!this.chatChain) {
+      throw new Error("没有生成chain");
+    } else {
+      const tempStream = await this.chatChain.stream(
+        {
+          system_prompt:
+            "你是一个全栈高级开发, 根据我传给你的文本，审阅这些代码，并返回审阅结果" +
+            (userPromptText || ""),
+          content: codeText || "",
+        },
+        {
+          configurable: { sessionId: "default" },
+          signal: abortController.signal,
+        },
+      );
+      return tempStream;
+    }
+  }
 }

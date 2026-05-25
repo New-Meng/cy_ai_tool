@@ -9,6 +9,7 @@ import styles from "../chatHome/index.module.css";
 import type { ProjectItem } from "../../../electron/dto/codeViewDto";
 import { ModelItemInterace } from "../../../electron/payloadByMainController/settingController";
 import SelectGitHash from "./SelectGitHash";
+import { CodeViewResult } from "./CodeViewResult";
 
 type HashItem = {
   hash: string;
@@ -19,19 +20,21 @@ type HashItem = {
 
 const CodeView = () => {
   const selectGitHashRef = useRef<{
-    open: (projectPath: string) => Promise<string>;
+    open: (projectPath: string) => Promise<HashItem | null>;
   }>(null);
   const [messageApi, messageContext] = message.useMessage({
     top: 60,
     maxCount: 3,
   });
+
+  const [codeResult, setCodeResult] = useState<string>("");
+  const [streamStatus, setStreamStatus] = useState<number>(0);
   const [curModel, setCurModel] = useState<string>("");
   // 模拟项目列表数据
   const [projectList, setProjectList] = useState<ProjectItem[]>([]);
 
   const [activeProjectId, setActiveProjectId] = useState<number>(0);
-
-  const [hashList, setHashList] = useState<HashItem[]>([]);
+  const [operateHash, setOperateHash] = useState<HashItem | null>(null);
 
   const [modelList, setModelList] = useState<ModelItemInterace[]>([]);
 
@@ -110,8 +113,14 @@ const CodeView = () => {
   };
 
   const selectCurProject = async (item: ProjectItem) => {
-    setActiveProjectId(item.id);
-    selectGitHashRef.current?.open(item.projectPath);
+    try {
+      setActiveProjectId(item.id);
+      const hash: HashItem | null | undefined =
+        await selectGitHashRef.current?.open(item.projectPath);
+      setOperateHash(hash || null);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleAddCodeViewPrompt = () => {
@@ -131,11 +140,44 @@ const CodeView = () => {
 
   const handleSendCodeView = () => {
     console.log("logsend");
+    window.ipcRenderer.invoke("sendCodeViewStream", {
+      userPromptText: textValue,
+      filePath:
+        projectList?.find((item) => {
+          return item.id == activeProjectId;
+        })?.projectPath || "",
+      hash: operateHash?.hash || "",
+    });
+  };
+
+  // 监听返回的流
+  const watchAiAnswerStream = () => {
+    window.ipcRenderer.on("aiAnswer-ing", (_, chunk) => {
+      if (streamStatus != 1) {
+        setStreamStatus(1);
+      }
+
+      setCodeResult((preText) => preText + chunk);
+    });
+    window.ipcRenderer.on("aiAnswer-end", () => {
+      console.log(codeResult, "++??end");
+      if (streamStatus != 2) {
+        setStreamStatus(2);
+      }
+    });
+    window.ipcRenderer.on("aiAnswer-error", (_, chunk) => {
+      console.log(chunk, "++??error");
+      if (streamStatus != 2) {
+        setStreamStatus(2);
+      }
+      messageApi.error(chunk?.message || "请求失败!");
+    });
   };
 
   useEffect(() => {
     initModelList();
     initList();
+    watchAiAnswerStream();
   }, []);
 
   return (
@@ -208,8 +250,11 @@ const CodeView = () => {
         <div className="flex-1 h-full ml-2 border-[#e8e8e8]">
           {/* 右侧内容区 */}
           {/* ai评分的地方 */}
-          <div className="flex-1 w-full h-[calc(100%-160px)]">
-            <div></div>
+          <div className="flex-1 w-full h-[calc(100%-220px)] overflow-y-auto">
+            <CodeViewResult
+              streamStatus={streamStatus}
+              viewResult={codeResult}
+            ></CodeViewResult>
           </div>
 
           <div className="w-full h-[160px] border border-primary-1 rounded-2xl bg-white p-2 flex flex-col">
@@ -220,7 +265,8 @@ const CodeView = () => {
               style={{ backgroundColor: "transparent", resize: "none" }}
               autoSize={{ minRows: 4 }}
               value={textValue}
-              onChange={(val: React.ChangeEvent<HTMLTextAreaElement>) => {
+              onInput={(val: React.ChangeEvent<HTMLTextAreaElement>) => {
+                console.log(val, "++??val");
                 setTextValue(val.target.value);
               }}
               onKeyDown={(e) => {
@@ -267,13 +313,22 @@ const CodeView = () => {
 
               <div>
                 <Button
-                  disabled={!textValue.trim()}
+                  disabled={!textValue.trim() && !operateHash?.hash}
                   type="primary"
                   icon={<SendOutlined />}
                   className="rounded-full"
                   onClick={handleSendCodeView}
                 >
                   审核
+                </Button>
+
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  className="rounded-full"
+                  onClick={handleSendCodeView}
+                >
+                  终止
                 </Button>
               </div>
             </div>

@@ -8,6 +8,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { marked } from "marked";
 import styles from "./index.module.css";
+import markDownStyles from "../../common/markdowmCss.module.css";
 import { ModelItemInterace } from "../../../electron/payloadByMainController/settingController";
 import { modelTemperatureConfig } from "../../../electron/langChain/modelTemperatureConfig";
 
@@ -272,7 +273,7 @@ const ChatHome = () => {
                     className="user-ask flex justify-end items-center w-full h-auto box-border px-3 mb-5"
                   >
                     <div
-                      className={`max-w-[80%] bg-[#f5f5f5] rounded-2xl px-4 py-2 ${styles.markdown}`} // 添加气泡背景色、圆角和内边距，并应用 Markdown 样式
+                      className={`max-w-[80%] bg-[#f5f5f5] rounded-2xl px-4 py-2 ${markDownStyles.markdown}`} // 添加气泡背景色、圆角和内边距，并应用 Markdown 样式
                       dangerouslySetInnerHTML={{
                         __html: marked.parse(item.content) as string,
                       }}
@@ -283,7 +284,7 @@ const ChatHome = () => {
                 return (
                   <div
                     key={index}
-                    className={` ${streamStatus == 1 ? "is-generating" : ""} custom-ai-answer w-full h-auto box-border p-3 ${styles.markdown}`} // 应用 AI 答案的 Markdown 样式
+                    className={` ${streamStatus == 1 ? "is-generating" : ""} custom-ai-answer w-full h-auto box-border p-3 ${markDownStyles.markdown}`} // 应用 AI 答案的 Markdown 样式
                     dangerouslySetInnerHTML={{
                       __html: marked.parse(item.content) as string,
                     }}

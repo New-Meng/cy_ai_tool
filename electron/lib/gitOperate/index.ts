@@ -1,5 +1,5 @@
-import { exec } from "child_process";
-import { ResultRt } from "../../utils";
+import { exec, execSync } from "child_process";
+import { ResultRt, ResultRtType } from "../../utils";
 import dayjs from "dayjs";
 
 // 获取git 的 uuid
@@ -92,27 +92,19 @@ export async function getTotalCommits(filePath: string) {
   });
 }
 
+// 获取diff文件的内容
+const getFileDiffContent = async (filePath: string, commitHash: string) => {
+  const command = `git -C ${filePath} show ${commitHash}`;
+  const diffContent = execSync(command);
+  return diffContent.toString();
+};
+
 // 返回git的更改文件的内容
 export const getGitDiffFileText = async (
   filePath: string,
   commitHash: string,
-) => {
-  return new Promise((resolve, reject) => {
-    const command = `git -C ${filePath} show --name-only --pretty=format:'' ${commitHash}`;
-
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error.message}`);
-        reject(ResultRt.fail(error.message));
-        return;
-      }
-
-      if (stderr) {
-        console.error(`exec error: ${stderr}`);
-        reject(ResultRt.fail(stderr));
-        return;
-      }
-      resolve(stdout);
-    });
-  });
+): Promise<ResultRtType<string>> => {
+  const diffRes = await getFileDiffContent(filePath, commitHash);
+  console.log(diffRes, "++??res");
+  return ResultRt.success(diffRes);
 };

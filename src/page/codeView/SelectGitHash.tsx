@@ -1,7 +1,7 @@
 import { Button, Modal, Table, type TableColumnsType } from "antd";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 
-type HashItem = {
+export type HashItem = {
   hash: string;
   message: string;
   date: string;

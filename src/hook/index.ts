@@ -36,6 +36,7 @@ export const useAutoScrollBottom = <T extends HTMLElement = HTMLDivElement>(
     }
   }, []);
 
+  // 手动滚动到底部
   const toRefBottom = () => {
     if (!scrollRef.current) {
       return;

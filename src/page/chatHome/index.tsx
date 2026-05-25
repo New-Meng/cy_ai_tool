@@ -70,11 +70,14 @@ const ChatHome = () => {
 
   const initModel = async () => {
     const res = await window.ipcRenderer.invoke("get-model-list");
+    const currentModel = await window.ipcRenderer.invoke("get-current-model");
     if (res.success) {
       res.data?.forEach((model: ModelItemInterace) => {
-        if (model.defaultModel) {
+        if (model.defaultModel && !currentModel.data) {
           setCurModel(model.id);
           handleSwitchModel(model.id);
+        } else if (currentModel.data) {
+          setCurModel(currentModel.data);
         }
       });
       setModelList(res.data);

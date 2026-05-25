@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import { getGitCommitHistory } from "../lib/gitOperate";
+import { getGitCommitHistory, getTotalCommits } from "../lib/gitOperate";
 import { ResultRt } from "../utils";
 import {
   addProject,
@@ -45,8 +45,9 @@ export const commandContrllerFun = () => {
 
   // 获取分页应用
   ipcMain.handle("getProjectHashList", async (_, { path, limit, page }) => {
-    const res = await getGitCommitHistory(path, limit, page);
-    return ResultRt.success(res);
+    const res = await getGitCommitHistory(path, limit, page - 1);
+    const totalCommits = await getTotalCommits(path);
+    return ResultRt.success({ data: res, total: totalCommits });
   });
 
   // ipcMain.handle("viewCodeAll", async (event, { path, commitHash }) => {

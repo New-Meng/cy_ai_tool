@@ -4,9 +4,11 @@ import {
   SendOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "../chatHome/index.module.css";
 import type { ProjectItem } from "../../../electron/dto/codeViewDto";
+import { ModelItemInterace } from "../../../electron/payloadByMainController/settingController";
+import SelectGitHash from "./SelectGitHash";
 
 type HashItem = {
   hash: string;
@@ -16,6 +18,9 @@ type HashItem = {
 };
 
 const CodeView = () => {
+  const selectGitHashRef = useRef<{
+    open: (projectPath: string) => Promise<string>;
+  }>(null);
   const [messageApi, messageContext] = message.useMessage({
     top: 60,
     maxCount: 3,
@@ -28,7 +33,7 @@ const CodeView = () => {
 
   const [hashList, setHashList] = useState<HashItem[]>([]);
 
-  const [modelList, setModelList] = useState([]);
+  const [modelList, setModelList] = useState<ModelItemInterace[]>([]);
 
   const [textValue, setTextValue] = useState<string>("");
 
@@ -37,6 +42,21 @@ const CodeView = () => {
     console.log(res.data, "++??resdata");
     if (res.success) {
       setProjectList(res.data);
+    }
+  };
+
+  const initModelList = async () => {
+    const res = await window.ipcRenderer.invoke("get-model-list");
+    const currentModel = await window.ipcRenderer.invoke("get-current-model");
+    console.log(currentModel, "++??currentModel");
+    if (currentModel.success) {
+      setCurModel(currentModel.data);
+    }
+
+    if (res.success) {
+      setModelList(res.data);
+    } else {
+      messageApi.error("获取模型列表失败!");
     }
   };
 
@@ -90,26 +110,23 @@ const CodeView = () => {
   };
 
   const selectCurProject = async (item: ProjectItem) => {
-    const res = await window.ipcRenderer.invoke("getProjectHashList", {
-      path: item.projectPath,
-    });
-    console.log(res, "++??res");
-    if (res.success) {
-      setHashList(res.data);
-      messageApi.success("项目选择成功");
-
-      setActiveProjectId(item.id);
-    } else {
-      messageApi.error(res.message.message ? res.message.message : res.message);
-    }
+    setActiveProjectId(item.id);
+    selectGitHashRef.current?.open(item.projectPath);
   };
 
   const handleAddCodeViewPrompt = () => {
     console.log("++??add");
   };
 
-  const handleSwitchModel = (value: string) => {
-    setCurModel(value);
+  const handleSwitchModel = async (value: string) => {
+    const res = await window.ipcRenderer.invoke("switchAIModel", value);
+    console.log(res, "++??res");
+    if (res.success) {
+      setCurModel(value);
+      messageApi.success("模型切换成功!");
+    } else {
+      messageApi.error("模型切换失败!");
+    }
   };
 
   const handleSendCodeView = () => {
@@ -117,12 +134,14 @@ const CodeView = () => {
   };
 
   useEffect(() => {
+    initModelList();
     initList();
   }, []);
 
   return (
     <>
       {messageContext}
+      <SelectGitHash ref={selectGitHashRef}></SelectGitHash>
       <div className="w-full h-full flex justify-between items-center">
         <div className="w-[220px] h-full border-r border-[#e8e8e8] rounded-xl bg-white flex flex-col">
           <div className="px-4 py-3 border-b border-[#f0f0f0] font-bold text-[#333]">
@@ -186,14 +205,16 @@ const CodeView = () => {
             </Button>
           </div>
         </div>
-        <div className="flex-1 h-full bg-white ml-2 rounded-xl shadow-sm border border-[#e8e8e8]">
+        <div className="flex-1 h-full ml-2 border-[#e8e8e8]">
           {/* 右侧内容区 */}
           {/* ai评分的地方 */}
-          <div className="flex-1 w-full h-[calc(100%-160px)]"></div>
+          <div className="flex-1 w-full h-[calc(100%-160px)]">
+            <div></div>
+          </div>
 
           <div className="w-full h-[160px] border border-primary-1 rounded-2xl bg-white p-2 flex flex-col">
             <Input.TextArea
-              placeholder="请输入代码审核规则"
+              placeholder="请输入代码审核prompt"
               variant="borderless"
               className={`w-full flex-1 ${styles["custom-scrollbar"]}`}
               style={{ backgroundColor: "transparent", resize: "none" }}
@@ -252,7 +273,7 @@ const CodeView = () => {
                   className="rounded-full"
                   onClick={handleSendCodeView}
                 >
-                  发送
+                  审核
                 </Button>
               </div>
             </div>

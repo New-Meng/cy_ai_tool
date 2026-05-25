@@ -97,6 +97,11 @@ export class SimpleChatbot {
     }
   }
 
+  // 获取当前的模型
+  getCurrentModel() {
+    return this.currentModel;
+  }
+
   // 更新模型参数，并重新生成模型
   resetModel() {
     const settingStore = configManagerFactory(SETTING_MODEL_LIST);

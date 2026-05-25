@@ -79,6 +79,7 @@ export const rendererAiMessageController = () => {
       return ResultRt.fail("请输入模型id!");
     }
     simpleChatbotIns.stopMessageCurrentMessage(modelId);
+    return ResultRt.success(true);
   });
 
   ipcMain.handle("switchAIModel", (_, modelId: string) => {
@@ -192,6 +193,15 @@ export const rendererAiMessageController = () => {
       return ResultRt.success(true);
     } catch (error) {
       return ResultRt.fail(error as Error);
+    }
+  });
+
+  ipcMain.handle("get-current-model", () => {
+    try {
+      const currentModel = simpleChatbotIns.getCurrentModel();
+      return ResultRt.success(currentModel?._$modelId);
+    } catch (error) {
+      return ResultRt.fail("currentModel.json获取失败");
     }
   });
 };

@@ -105,23 +105,35 @@ const HistoryMessageList = forwardRef<
     return (
       <>
         {mesageContext}
-        <div className="w-[180px] h-full relative">
+        <div className="w-[180px] h-full relative shrink-0">
           <div
-            className={`box-border p-2 w-[180px] h-full flex flex-col justify-between items-center bg-[#fcf0ff] rounded-md ${className || ""}`}
+            className={`box-border p-2.5 w-[180px] h-full flex flex-col justify-between items-center gap-3 bg-white border border-primary-1/10 rounded-2xl shadow-sm ${className || ""}`}
           >
-            <div className="w-full h-[calc(100% - 100px)] flex flex-col justify-start items-center bg-[#fcf0ff] rounded-md">
-              {messageHistoryList.map((item, index) => {
+            <div className="w-full flex-1 overflow-y-auto flex flex-col justify-start items-center gap-1">
+              {messageHistoryList.map((item) => {
+                const isActive = sessionId === item.sessionId;
                 return (
                   <div
-                    key={index}
+                    key={item.sessionId}
                     onClick={() => changeHistoryChat(item)}
-                    className="px-1 py-1 w-full flex justify-between items-center cursor-pointer rounded-md hover:bg-[#e5d0d0]"
+                    className={`group px-2 py-2 w-full flex justify-between items-center cursor-pointer rounded-xl border transition-all duration-200
+                      ${
+                        isActive
+                          ? "bg-primary-1/10 border-primary-1/20 text-primary-1 shadow-sm"
+                          : "border-transparent text-[#555] hover:bg-[#f6f1ff] hover:text-[#4b2ca3]"
+                      }`}
                   >
-                    <div className="text-ellipsis flex-nowrap text-nowrap overflow-hidden whitespace-nowrap">
+                    <div
+                      className={`flex-1 min-w-0 text-ellipsis flex-nowrap text-nowrap overflow-hidden whitespace-nowrap text-[13px] ${
+                        isActive ? "font-medium" : ""
+                      }`}
+                    >
                       {item.name}
                     </div>
                     <div
-                      className="cursor-pointer text-primary-1"
+                      className={`ml-2 flex shrink-0 cursor-pointer transition-opacity duration-200 ${
+                        isActive ? "opacity-100" : "opacity-60 group-hover:opacity-100"
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                       }}
@@ -133,7 +145,7 @@ const HistoryMessageList = forwardRef<
                         cancelText="取消"
                         onConfirm={() => handleDeleteItemChat(item)}
                       >
-                        <CloseCircleOutlined className="cursor-pointer rounded-full hover:bg-white" />
+                        <CloseCircleOutlined className="cursor-pointer rounded-full p-1 text-primary-1 hover:bg-primary-1/10" />
                       </Popconfirm>
                     </div>
                   </div>
@@ -141,12 +153,14 @@ const HistoryMessageList = forwardRef<
               })}
 
               {messageHistoryList.length == 0 ? (
-                <div className="text-center text-[#999]">暂无会话</div>
+                <div className="w-full flex-1 min-h-[120px] flex justify-center items-center text-center text-[13px] text-[#999] bg-[#faf7ff] border border-dashed border-primary-1/10 rounded-xl">
+                  暂无会话
+                </div>
               ) : null}
             </div>
 
-            <div className="w-full h-[35px] flex justify-center items-center">
-              <Button type="primary" onClick={handleCreateNewChat}>
+            <div className="w-full pt-2 border-t border-primary-1/10 flex justify-center items-center">
+              <Button type="primary" className="w-full" onClick={handleCreateNewChat}>
                 <PlusOutlined className="mr-1" />
                 新建对话
               </Button>

@@ -75,6 +75,23 @@ export const getGitCommitHistory = async (
   });
 };
 
+export async function getTotalCommits(filePath: string) {
+  return new Promise((resolve, reject) => {
+    const command = `git -C "${filePath}" rev-list --count HEAD -- ${filePath}`;
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error.message}`);
+        return reject(ResultRt.fail(error.message));
+      }
+      if (stderr) {
+        console.error(`exec error: ${stderr}`);
+        return reject(ResultRt.fail(stderr));
+      }
+      resolve(Number(stdout.replace("\n", "") || 0));
+    });
+  });
+}
+
 // 返回git的更改文件的内容
 export const getGitDiffFileText = async (
   filePath: string,

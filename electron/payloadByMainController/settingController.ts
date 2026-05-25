@@ -41,16 +41,25 @@ export const rendererSettingController = () => {
 
         // 校验一下模型数据
         let isUpdateOperate = false;
+        let errorText = "";
         modelList.forEach((item, index) => {
+          if (errorText) {
+            return;
+          }
+          if (item.modelName === args.modelName && item.id !== args.id) {
+            errorText = "模型名称已存在";
+            return;
+          }
           // update
           if (item.id === args.id) {
             isUpdateOperate = true;
             modelList[index] = args;
           }
-          if (item.modelName === args.modelName && item.id !== args.id) {
-            return rej(ResultRt.fail("模型名称已存在"));
-          }
         });
+
+        if (errorText) {
+          return rej(ResultRt.fail(errorText));
+        }
 
         if (isUpdateOperate) {
           settingStore.set("modelList", modelList);

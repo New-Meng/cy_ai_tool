@@ -1,0 +1,37 @@
+/* 自定义滚动条样式 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes cursorBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+/* AI 打字光标 */
+:global(.custom-ai-answer .custom-golbal-cursor-dot)::after {
+  display: inline-block;
+  content: "▍";
+  animation: cursorBlink 1s infinite;
+}
+
+:global(.custom-ai-answer:last-of-type.is-generating > *:last-child)::after {
+  display: inline-block;
+  content: "●";
+  animation: cursorBlink 1s infinite;
+  margin-left: 4px;
+  color: #c38afc; /* 光标颜色，可根据主题调整 */
+}

@@ -1,11 +1,12 @@
 import { Button, Input, Popconfirm, Select, Tooltip, message } from "antd";
 import {
+  ClearOutlined,
   CloseCircleOutlined,
   SendOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
 import { useEffect, useRef, useState } from "react";
-import styles from "../chatHome/index.module.css";
+import baseStyle from "../../common/baseCss.module.css";
 import type { ProjectItem } from "../../../electron/dto/codeViewDto";
 import { ModelItemInterace } from "../../../electron/payloadByMainController/settingController";
 import SelectGitHash from "./SelectGitHash";
@@ -123,10 +124,6 @@ const CodeView = () => {
     }
   };
 
-  const handleAddCodeViewPrompt = () => {
-    console.log("++??add");
-  };
-
   const handleSwitchModel = async (value: string) => {
     const res = await window.ipcRenderer.invoke("switchAIModel", value);
     console.log(res, "++??res");
@@ -140,6 +137,8 @@ const CodeView = () => {
 
   const handleSendCodeView = () => {
     console.log("logsend");
+    setStreamStatus(1);
+    setCodeResult("<span></span>");
     window.ipcRenderer.invoke("sendCodeViewStream", {
       userPromptText: textValue,
       filePath:
@@ -148,6 +147,11 @@ const CodeView = () => {
         })?.projectPath || "",
       hash: operateHash?.hash || "",
     });
+  };
+
+  const handleStopAiReview = async () => {
+    await window.ipcRenderer.invoke("stopCodeViewStream");
+    setStreamStatus(0);
   };
 
   // 监听返回的流
@@ -174,6 +178,19 @@ const CodeView = () => {
     });
   };
 
+  const handleClearCodeView = async () => {
+    try {
+      await window.ipcRenderer.invoke("clearCurrentMessage");
+      setCodeResult("");
+      messageApi.success("删除成功");
+    } catch (error) {
+      console.log(error);
+      messageApi.error(
+        error instanceof Error ? error.message : "删除失败，请未知错误",
+      );
+    }
+  };
+
   useEffect(() => {
     initModelList();
     initList();
@@ -190,7 +207,7 @@ const CodeView = () => {
             项目列表
           </div>
           <div
-            className={`w-full flex-1 overflow-y-auto p-2 flex flex-col gap-1 ${styles["custom-scrollbar"]}`}
+            className={`w-full flex-1 overflow-y-auto p-2 flex flex-col gap-1 ${baseStyle["custom-scrollbar"]}`}
           >
             {projectList.map((item) => {
               const isActive = activeProjectId === item.id;
@@ -247,21 +264,37 @@ const CodeView = () => {
             </Button>
           </div>
         </div>
-        <div className="flex-1 h-full ml-2 border-[#e8e8e8]">
+        <div className="flex flex-col justify-between items-center flex-1 h-full ml-2 border-[#e8e8e8]">
           {/* 右侧内容区 */}
           {/* ai评分的地方 */}
-          <div className="flex-1 w-full h-[calc(100%-220px)] overflow-y-auto">
+          <div className="flex-1 w-full h-[calc(100%-180px)] overflow-y-auto">
             <CodeViewResult
               streamStatus={streamStatus}
               viewResult={codeResult}
             ></CodeViewResult>
           </div>
 
-          <div className="w-full h-[160px] border border-primary-1 rounded-2xl bg-white p-2 flex flex-col">
+          <div className="w-full border border-primary-1 rounded-2xl bg-white p-2 flex flex-col">
+            {operateHash?.hash && (
+              <div className="h-[28px] flex items-center px-1">
+                <div className="max-w-full h-[24px] px-2 flex items-center gap-1 rounded-full bg-primary-1/10 text-primary-1 text-[12px]">
+                  <Tooltip title={operateHash.hash}>
+                    <span className="truncate max-w-[220px]">
+                      {operateHash.hash}
+                    </span>
+                  </Tooltip>
+                  <CloseCircleOutlined
+                    className="cursor-pointer text-[13px] hover:text-red-500 transition-colors"
+                    onClick={() => setOperateHash(null)}
+                  />
+                </div>
+              </div>
+            )}
+
             <Input.TextArea
               placeholder="请输入代码审核prompt"
               variant="borderless"
-              className={`w-full flex-1 ${styles["custom-scrollbar"]}`}
+              className={`w-full flex-1 ${baseStyle["custom-scrollbar"]}`}
               style={{ backgroundColor: "transparent", resize: "none" }}
               autoSize={{ minRows: 4 }}
               value={textValue}
@@ -275,10 +308,7 @@ const CodeView = () => {
                   e.preventDefault(); // 阻止默认的回车换行行为
                   e.stopPropagation();
 
-                  // 如果输入为空，则不发送
-                  if (!textValue.trim()) return;
-
-                  handleAddCodeViewPrompt();
+                  handleSendCodeView();
                 }
               }}
             />
@@ -309,27 +339,37 @@ const CodeView = () => {
                     })}
                   />
                 </Tooltip>
+
+                <Tooltip title="清除审核">
+                  <Button
+                    onClick={handleClearCodeView}
+                    shape="circle"
+                    icon={<ClearOutlined />}
+                  />
+                </Tooltip>
               </div>
 
               <div>
-                <Button
-                  disabled={!textValue.trim() && !operateHash?.hash}
-                  type="primary"
-                  icon={<SendOutlined />}
-                  className="rounded-full"
-                  onClick={handleSendCodeView}
-                >
-                  审核
-                </Button>
-
-                <Button
-                  type="primary"
-                  icon={<SendOutlined />}
-                  className="rounded-full"
-                  onClick={handleSendCodeView}
-                >
-                  终止
-                </Button>
+                {streamStatus === 0 || streamStatus === 2 ? (
+                  <Button
+                    disabled={!textValue.trim() && !operateHash?.hash}
+                    type="primary"
+                    icon={<SendOutlined />}
+                    className="rounded-full"
+                    onClick={handleSendCodeView}
+                  >
+                    审核
+                  </Button>
+                ) : (
+                  <Button
+                    type="primary"
+                    icon={<SendOutlined />}
+                    className="rounded-full"
+                    onClick={handleStopAiReview}
+                  >
+                    终止
+                  </Button>
+                )}
               </div>
             </div>
           </div>

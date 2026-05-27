@@ -7,7 +7,7 @@ import {
 } from "@ant-design/icons";
 import { useEffect, useRef, useState } from "react";
 import { marked } from "marked";
-import styles from "./index.module.css";
+import styles from "../../common/baseCss.module.css";
 import markDownStyles from "../../common/markdowmCss.module.css";
 import { ModelItemInterace } from "../../../electron/payloadByMainController/settingController";
 import { modelTemperatureConfig } from "../../../electron/langChain/modelTemperatureConfig";

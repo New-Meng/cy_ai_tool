@@ -8,9 +8,9 @@ export type HashItem = {
   author: string;
 };
 
-const SelectGitHash = forwardRef((props, ref) => {
+const SelectGitHash = forwardRef((_, ref) => {
   const controllerObj = useRef<{
-    rev: (val?: unknown) => void;
+    rev: (val?: HashItem) => void;
     rej: () => void;
   }>({
     rev: (val?: unknown) => {
@@ -114,11 +114,15 @@ const SelectGitHash = forwardRef((props, ref) => {
     });
   };
 
-  const close = () => {
+  const onClear = () => {
     setVisible(false);
     setSelectedHash({} as HashItem);
     setHashList([]);
     currentProjectPathRef.current = "";
+  };
+
+  const close = () => {
+    onClear();
     controllerObj.current.rej();
     clearController();
   };
@@ -136,7 +140,7 @@ const SelectGitHash = forwardRef((props, ref) => {
 
   const onOk = () => {
     controllerObj.current.rev(selectedHash);
-    close();
+    onClear();
   };
 
   const clearController = () => {

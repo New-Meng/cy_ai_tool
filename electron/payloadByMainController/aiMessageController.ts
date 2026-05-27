@@ -113,6 +113,16 @@ export const rendererAiMessageController = () => {
     },
   );
 
+  ipcMain.handle("stopCodeViewStream", async () => {
+    const curModel = simpleChatbotIns.getCurrentModel();
+    if (curModel && curModel._$modelId) {
+      simpleChatbotIns.stopMessageCurrentMessage(curModel?._$modelId as string);
+      return ResultRt.success(true);
+    } else {
+      return ResultRt.fail("当前没有模型!");
+    }
+  });
+
   ipcMain.handle("switchAIModel", (_, modelId: string) => {
     if (!modelId) {
       return ResultRt.fail("请输入模型id!");

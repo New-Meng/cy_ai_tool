@@ -178,11 +178,13 @@ const CodeView = () => {
     });
   };
 
-  const handleClearCodeView = async () => {
+  const handleClearCodeView = async (isShowMessage: boolean = true) => {
     try {
       await window.ipcRenderer.invoke("clearCurrentMessage");
       setCodeResult("");
-      messageApi.success("删除成功");
+      if (isShowMessage) {
+        messageApi.success("删除成功");
+      }
     } catch (error) {
       console.log(error);
       messageApi.error(
@@ -285,7 +287,10 @@ const CodeView = () => {
                   </Tooltip>
                   <CloseCircleOutlined
                     className="cursor-pointer text-[13px] hover:text-red-500 transition-colors"
-                    onClick={() => setOperateHash(null)}
+                    onClick={() => {
+                      setOperateHash(null);
+                      handleClearCodeView(false);
+                    }}
                   />
                 </div>
               </div>
@@ -342,7 +347,7 @@ const CodeView = () => {
 
                 <Tooltip title="清除审核">
                   <Button
-                    onClick={handleClearCodeView}
+                    onClick={() => handleClearCodeView(true)}
                     shape="circle"
                     icon={<ClearOutlined />}
                   />
@@ -352,7 +357,9 @@ const CodeView = () => {
               <div>
                 {streamStatus === 0 || streamStatus === 2 ? (
                   <Button
-                    disabled={!textValue.trim() && !operateHash?.hash}
+                    disabled={
+                      (!textValue.trim() && !operateHash?.hash) || !!codeResult
+                    }
                     type="primary"
                     icon={<SendOutlined />}
                     className="rounded-full"

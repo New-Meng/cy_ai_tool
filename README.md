@@ -14,8 +14,8 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 ### 注意事项
 
-1. 项目依赖 node 18 以上版本
-2. 项目依赖 electron 18 以上版本
+1. 项目依赖 node 22.12.0 以上版本
+2. 项目依赖 electron 30.0.1 版本
 3. 项目依赖 langchain 0.3.0 以上版本
 4. electron-store 开发环境下，指向 /devConfig 目录下的配置文件
 5. 严禁使用pnpm，electron的二进制可执行文件，会被pnpm忽视，请使用yarn 或者 npm来管理安装包
@@ -27,3 +27,4 @@ This template provides a minimal setup to get React working in Vite with HMR and
 1. 支持模型、温度切换，支持上下文短期记忆、历史会话管理
 2. 支持设置豆包、deepseek模型接入(目前AI模型，只支持deepseek和豆包，其中，豆包`/ListFoundationModels`接口，需要ak/sk签名，才能拿到模型列表 + 模型id 犯病的很，方舟平台模型类型选择只提供有限支持)
 3. 通用配置设置
+4. 代码审查功能，根据选择的本地项目及对应的commit，调用AI模型，进行代码审查。

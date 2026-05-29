@@ -1,12 +1,12 @@
 import { app, BrowserWindow, Menu, Tray } from "electron";
 import { fileURLToPath } from "node:url";
+import { performance } from "node:perf_hooks";
 import path from "node:path";
 import { rendererAppController } from "./payloadByMainController/appController";
 import {
   baseSettingController,
   rendererSettingController,
 } from "./payloadByMainController/settingController";
-import { getConfigBasePath } from "./config/path";
 import RegisterShortCutKey from "./utils/registerShortCutKey";
 import { rendererAiMessageController } from "./payloadByMainController/aiMessageController";
 import { initializeDatabase } from "./typeorm";
@@ -19,15 +19,6 @@ if (process.platform === "win32") {
   process.env.PYTHONIOENCODING = "utf-8";
 }
 
-// The built directory structure
-//
-// ├─┬─┬ dist
-// │ │ └── index.html
-// │ │
-// │ ├─┬ dist-electron
-// │ │ ├── main.js
-// │ │ └── preload.mjs
-// │
 process.env.APP_ROOT = path.join(__dirname, "..");
 
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
@@ -44,9 +35,10 @@ let tray;
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1000,
-    minWidth: 1000,
-    height: 700,
+    width: 1200,
+    height: 750,
+    minWidth: 1200,
+    minHeight: 750,
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       // 安全配置
@@ -73,6 +65,8 @@ function createWindow() {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
+const start = performance.now();
+console.log("electron main start:", start);
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
@@ -122,6 +116,8 @@ function createTray() {
 }
 
 app.whenReady().then(() => {
+  console.log("ready开始执行", performance.now() - start);
+
   // 初始数据库连接
   initializeDatabase();
   createWindow();
@@ -134,7 +130,7 @@ app.whenReady().then(() => {
   rendererAppController();
 
   // 命令行操作
-  commandContrllerFun()
+  commandContrllerFun();
 
   // 设置通信操作
   rendererSettingController();
@@ -147,6 +143,5 @@ app.whenReady().then(() => {
   const registerShortCutKey = new RegisterShortCutKey(win);
   registerShortCutKey.init();
 
-  const configBasePath = getConfigBasePath();
-  console.log("configBasePath:", configBasePath);
+  console.log("ready执行完毕", performance.now() - start);
 });

@@ -77,7 +77,6 @@ export class SimpleChatbot {
         });
         this.modelMap[modelConfig.id]._$modelVender = modelConfig.modelVender;
         this.modelMap[modelConfig.id]._$modelId = modelConfig.id;
-        console.log(this.modelMap[modelConfig.id], "++??kk刚刚建立的模型");
         return this.modelMap[modelConfig.id];
       } else {
         this.modelMap[modelConfig.id] = new ChatOpenAI({
@@ -92,7 +91,6 @@ export class SimpleChatbot {
         });
         this.modelMap[modelConfig.id]._$modelVender = modelConfig.modelVender;
         this.modelMap[modelConfig.id]._$modelId = modelConfig.id;
-        console.log(this.modelMap[modelConfig.id], "++??kk刚刚建立的模型");
         return this.modelMap[modelConfig.id];
       }
     }

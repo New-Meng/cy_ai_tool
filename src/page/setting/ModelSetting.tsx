@@ -55,23 +55,6 @@ const ModelSetting: React.FC<{ curTab: string }> = ({ curTab }) => {
       console.log(error, "++??error");
     }
   };
-
-  // const quickRemoveValidate = async (item: ModelItemInterace) => {
-  //   try {
-  //     const res = await window.ipcRenderer.invoke("validate-model-item", item);
-  //     console.log(res, "++??res");
-  //     if (res.success) {
-  //       messageApi.success("当前模型可以正常使用");
-  //       initModelList();
-  //     } else {
-  //       throw new Error(res.message);
-  //     }
-  //   } catch (error) {
-  //     console.log(error, "++??error");
-  //     messageApi.error("当前模型无法正常使用");
-  //   }
-  // };
-
   const initModelList = async () => {
     const res = await window.ipcRenderer.invoke("get-model-list");
     console.log(res, "++??");

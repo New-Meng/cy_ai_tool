@@ -199,7 +199,7 @@ doubao-code-32k
 
   ipcMain.handle("validate-model-item", async (_, args) => {
     try {
-      const { modelName, apiUrl, apiKey } = args;
+      const { modelName, apiUrl, apiKey, modeType } = args;
       if (!modelName || !apiUrl || !apiKey) {
         return ResultRt.fail("模型名称、API URL、API Key 不能为空");
       }
@@ -208,6 +208,7 @@ doubao-code-32k
         baseUrl: apiUrl,
         apiKey,
         options: {
+          _$modeType: modeType,
           timeout: 3000,
         },
       });

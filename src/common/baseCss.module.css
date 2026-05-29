@@ -33,5 +33,5 @@
   content: "●";
   animation: cursorBlink 1s infinite;
   margin-left: 4px;
-  color: #c38afc; /* 光标颜色，可根据主题调整 */
+  color: #c38afc;
 }

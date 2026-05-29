@@ -161,7 +161,13 @@ const CodeView = () => {
         setStreamStatus(1);
       }
 
-      setCodeResult((preText) => preText + chunk);
+      setCodeResult((preText) => {
+        if (preText == "<span></span>" && chunk != "") {
+          return chunk;
+        } else {
+          return preText + chunk;
+        }
+      });
     });
     window.ipcRenderer.on("aiAnswer-end", () => {
       console.log(codeResult, "++??end");
@@ -266,10 +272,10 @@ const CodeView = () => {
             </Button>
           </div>
         </div>
-        <div className="flex flex-col justify-between items-center flex-1 h-full ml-2 border-[#e8e8e8]">
+        <div className="flex flex-col gap-2 justify-between items-center flex-1 h-full ml-2 border-[#e8e8e8]">
           {/* 右侧内容区 */}
           {/* ai评分的地方 */}
-          <div className="flex-1 w-full h-[calc(100%-180px)] overflow-y-auto">
+          <div className="flex-1 w-full h-[calc(100%-200px)] overflow-y-auto">
             <CodeViewResult
               streamStatus={streamStatus}
               viewResult={codeResult}
@@ -304,7 +310,6 @@ const CodeView = () => {
               autoSize={{ minRows: 4 }}
               value={textValue}
               onInput={(val: React.ChangeEvent<HTMLTextAreaElement>) => {
-                console.log(val, "++??val");
                 setTextValue(val.target.value);
               }}
               onKeyDown={(e) => {

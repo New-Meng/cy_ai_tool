@@ -11,10 +11,14 @@ export const CodeViewResult = ({
   viewResult: string;
   streamStatus: number;
 }) => {
-  const [scrollRef, autoScrollBottom] = useAutoScrollBottom();
+  const [scrollRef, autoScrollBottom, toRefBottom] = useAutoScrollBottom();
   useEffect(() => {
     console.log(viewResult, "++??viewResult");
     autoScrollBottom();
+
+    if (!viewResult) {
+      toRefBottom();
+    }
   }, [viewResult]);
   return (
     <>

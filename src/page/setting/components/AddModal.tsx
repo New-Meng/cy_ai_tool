@@ -1,4 +1,4 @@
-import { Button, Modal, Select, Switch, message } from "antd";
+import { Button, Modal, Select, Switch, Tabs, message } from "antd";
 import {
   forwardRef,
   useEffect,
@@ -156,7 +156,7 @@ const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
       form.setFieldValue("apiUrl", modelInfo?.url || "");
     };
 
-    // 可能超时，需要处理一下gemini超市的问题
+    // 可能超时，需要处理一下gemini超时的问题
     const handleValidateLink = async (
       isSuccessMessage: boolean = false,
       isFailMessage: boolean = false,
@@ -257,111 +257,135 @@ const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
             disabled: passValidate && !testLoading ? false : true,
           }}
         >
-          <Form
-            style={{ marginTop: 20 }}
-            labelAlign="right"
-            labelCol={{ span: 6 }}
-            layout={"horizontal"}
-            form={form}
-            initialValues={{ layout: "horizontal" }}
-          >
-            <Form.Item name="id" hidden></Form.Item>
-            <Form.Item
-              label="自定义名称"
-              name="modelName"
-              rules={rules.modelName}
-            >
-              <Input placeholder="请输入模型名称" />
-            </Form.Item>
-            <Form.Item
-              label="模型厂家"
-              name="modelVender"
-              rules={rules.modelVender}
-            >
-              <Select
-                onChange={modelVenderChange}
-                options={Object.values(MODEL_INFO_MAP).map((item) => ({
-                  value: item.id,
-                  label: item.name,
-                }))}
-              />
-            </Form.Item>
-            <Form.Item label="API地址" name="apiUrl" rules={rules.apiUrl}>
-              <Input placeholder="请输入API地址" />
-            </Form.Item>
+          <Tabs
+            defaultActiveKey="default"
+            items={[
+              {
+                key: "default",
+                label: "默认",
+                children: (
+                  <Form
+                    style={{ marginTop: 20 }}
+                    labelAlign="right"
+                    labelCol={{ span: 6 }}
+                    layout={"horizontal"}
+                    form={form}
+                    initialValues={{ layout: "horizontal" }}
+                  >
+                    <Form.Item name="id" hidden></Form.Item>
+                    <Form.Item
+                      label="自定义名称"
+                      name="modelName"
+                      rules={rules.modelName}
+                    >
+                      <Input placeholder="请输入模型名称" />
+                    </Form.Item>
+                    <Form.Item
+                      label="模型厂家"
+                      name="modelVender"
+                      rules={rules.modelVender}
+                    >
+                      <Select
+                        onChange={modelVenderChange}
+                        options={Object.values(MODEL_INFO_MAP).map((item) => ({
+                          value: item.id,
+                          label: item.name,
+                        }))}
+                      />
+                    </Form.Item>
+                    <Form.Item
+                      label="API地址"
+                      name="apiUrl"
+                      rules={rules.apiUrl}
+                    >
+                      <Input placeholder="请输入API地址" />
+                    </Form.Item>
 
-            {modelVender === MODEL_INFO_MAP.DOUBAO.id && (
-              <Form.Item
-                className="flex-1"
-                label="eqId"
-                name="eqId"
-                rules={rules?.eqId}
-              >
-                <Input placeholder="请输入豆包eqId" />
-              </Form.Item>
-            )}
+                    {modelVender === MODEL_INFO_MAP.DOUBAO.id && (
+                      <Form.Item
+                        className="flex-1"
+                        label="eqId"
+                        name="eqId"
+                        rules={rules?.eqId}
+                      >
+                        <Input placeholder="请输入豆包eqId" />
+                      </Form.Item>
+                    )}
 
-            <div className="flex justify-between gap-3">
-              <Form.Item
-                className="flex-1"
-                label="私人密钥Key"
-                labelCol={{ span: 8 }}
-                name="apiKey"
-                rules={rules.apiKey}
-              >
-                <Input placeholder="请输入API_KEY" />
-              </Form.Item>
+                    <div className="flex justify-between gap-3">
+                      <Form.Item
+                        className="flex-1"
+                        label="私人密钥Key"
+                        labelCol={{ span: 8 }}
+                        name="apiKey"
+                        rules={rules.apiKey}
+                      >
+                        <Input placeholder="请输入API_KEY" />
+                      </Form.Item>
 
-              <Button
-                type="primary"
-                loading={testLoading}
-                onClick={() => handleValidateLink(true, true)}
-              >
-                测试连接
-              </Button>
-            </div>
-
-            <Form.Item
-              label="选择模型版本"
-              name="modeType"
-              rules={rules.modeType}
-            >
-              <Select
-                showSearch={{
-                  filterOption: (input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase()),
-                }}
-                disabled={disabledModelType}
-                onFocus={() => {
-                  const url = form.getFieldValue("apiUrl");
-                  resetModeTypeOptions(url);
-                }}
-                notFoundContent={
-                  <>
-                    <div className="w-full h-[120px] flex items-center justify-center">
-                      无模型
+                      <Button
+                        type="primary"
+                        loading={testLoading}
+                        onClick={() => handleValidateLink(true, true)}
+                      >
+                        测试连接
+                      </Button>
                     </div>
-                  </>
-                }
-                options={modelTypeList.map((item) => ({
-                  value: item,
-                  label: item,
-                }))}
-              />
-            </Form.Item>
 
-            <Form.Item label="是否设为默认模型" name="defaultModel">
-              <Switch
-                style={{ marginLeft: "10px" }}
-                checkedChildren="是"
-                unCheckedChildren="否"
-                active-value="true"
-                inactive-value="false"
-              />
-            </Form.Item>
-          </Form>
+                    <Form.Item
+                      label="选择模型版本"
+                      name="modeType"
+                      rules={rules.modeType}
+                    >
+                      <Select
+                        showSearch={{
+                          filterOption: (input, option) =>
+                            (option?.label ?? "")
+                              .toLowerCase()
+                              .includes(input.toLowerCase()),
+                        }}
+                        disabled={disabledModelType}
+                        onFocus={() => {
+                          const url = form.getFieldValue("apiUrl");
+                          resetModeTypeOptions(url);
+                        }}
+                        notFoundContent={
+                          <>
+                            <div className="w-full h-[120px] flex items-center justify-center">
+                              无模型
+                            </div>
+                          </>
+                        }
+                        options={modelTypeList.map((item) => ({
+                          value: item,
+                          label: item,
+                        }))}
+                      />
+                    </Form.Item>
+
+                    <Form.Item label="是否设为默认模型" name="defaultModel">
+                      <Switch
+                        style={{ marginLeft: "10px" }}
+                        checkedChildren="是"
+                        unCheckedChildren="否"
+                        active-value="true"
+                        inactive-value="false"
+                      />
+                    </Form.Item>
+                  </Form>
+                ),
+              },
+              {
+                key: "custom",
+                label: "自定义",
+                children: (
+                  <div className="h-[120px] flex items-center justify-center text-gray-500">
+                    默认模型配置
+                  </div>
+                ),
+              },
+            ]}
+          />
         </Modal>
       </>
     );

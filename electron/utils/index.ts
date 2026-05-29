@@ -19,7 +19,7 @@ export class ResultRt {
     return {
       success: false,
       message,
-      data: null
+      data: null,
     };
   }
 }
@@ -43,12 +43,14 @@ export interface removeCatchInterface {
 }
 
 // 注意，后面其它模型可能接口返的数据格式不同需要处理
-export const removeModelUrlAndKey = async (OpenAIInstance: OpenAI) => {
+export const removeModelUrlAndKey = async (
+  OpenAIInstance: OpenAI & { _options: { _$modeType: string } },
+) => {
   try {
     try {
       const resultList = await OpenAIInstance.models.list();
-      console.log("API 连接正常", resultList.data);
-      return ResultRt.success(resultList.data);
+      console.log("API 连接正常", resultList?.data);
+      return ResultRt.success(resultList?.data || []);
     } catch (error) {
       console.error("API 连接失败:", error);
       return ResultRt.fail(error);

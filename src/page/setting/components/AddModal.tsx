@@ -17,6 +17,8 @@ export interface InterfaceModalRef {
 const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
   {
     const [form] = Form.useForm();
+    const [customForm] = Form.useForm();
+    const [saveType, setSaveType] = useState<string>("default");
     const [isOpen, setIsOpen] = useState(false);
     const [passValidate, setPassValidate] = useState(false);
     const [modelTypeList, setModelTypeList] = useState<string[]>([]);
@@ -57,7 +59,16 @@ const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
           modelName,
         );
         if (res.success) {
-          form.setFieldsValue(res.data);
+          if (res.data.saveType == "default") {
+            setSaveType("default");
+          } else if (res.data.saveType == "custom") {
+            setSaveType("custom");
+          }
+          if (res.data.saveType == "default") {
+            form.setFieldsValue(res.data);
+          } else if (res.data.saveType == "custom") {
+            customForm.setFieldsValue(res.data);
+          }
         }
       }
     };
@@ -78,12 +89,28 @@ const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
     };
 
     const onSaveModelItem = async () => {
-      // 先校验 - 再保存
-      const values = await form.validateFields();
-      await handleValidateLink(false, true); // 重新远程校验，防止手贱
-      const res = await window.ipcRenderer.invoke("add-model-item", values);
-      if (!res.success) {
-        throw new Error(res.message);
+      if (saveType == "default") {
+        // 先校验 - 再保存
+        const values = await form.validateFields();
+        await handleValidateLink(false, true); // 重新远程校验，防止手贱
+        const res = await window.ipcRenderer.invoke("add-model-item", {
+          saveType: saveType,
+          ...values,
+        });
+        if (!res.success) {
+          throw new Error(res.message);
+        }
+      } else if (saveType == "custom") {
+        // 先校验 - 再保存
+        const values = await customForm.validateFields();
+        await handleValidateLink(false, true); // 重新远程校验，防止手贱
+        const res = await window.ipcRenderer.invoke("add-model-item", {
+          saveType: saveType,
+          ...values,
+        });
+        if (!res.success) {
+          throw new Error(res.message);
+        }
       }
     };
 
@@ -161,7 +188,12 @@ const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
       isSuccessMessage: boolean = false,
       isFailMessage: boolean = false,
     ) => {
-      const values = await form.getFieldsValue();
+      let values = null;
+      if (saveType == "default") {
+        values = await form.getFieldsValue();
+      } else if (saveType == "custom") {
+        values = await customForm.getFieldsValue();
+      }
       setTestLoading(true);
       try {
         const deepValidate = await window.ipcRenderer.invoke(
@@ -258,7 +290,8 @@ const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
           }}
         >
           <Tabs
-            defaultActiveKey="default"
+            activeKey={saveType}
+            onChange={setSaveType}
             items={[
               {
                 key: "default",
@@ -379,9 +412,59 @@ const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
                 key: "custom",
                 label: "自定义",
                 children: (
-                  <div className="h-[120px] flex items-center justify-center text-gray-500">
-                    默认模型配置
-                  </div>
+                  <Form
+                    form={customForm}
+                    style={{ marginTop: 20 }}
+                    labelAlign="right"
+                    labelCol={{ span: 6 }}
+                    layout={"horizontal"}
+                    initialValues={{ layout: "horizontal" }}
+                  >
+                    <Form.Item name="id" hidden></Form.Item>
+                    <Form.Item
+                      label="自定义名称"
+                      name="modelName"
+                      rules={rules.modelName}
+                    >
+                      <Input placeholder="请输入模型名称" />
+                    </Form.Item>
+
+                    <Form.Item
+                      label="API地址"
+                      name="apiUrl"
+                      rules={rules.apiUrl}
+                    >
+                      <Input placeholder="请输入API地址" />
+                    </Form.Item>
+
+                    <Form.Item
+                      label="模型id"
+                      name="modeType"
+                      rules={rules.modeType}
+                    >
+                      <Input placeholder="请输入接入模型id" />
+                    </Form.Item>
+
+                    <div className="flex justify-between gap-3">
+                      <Form.Item
+                        className="flex-1"
+                        label="私人密钥Key"
+                        labelCol={{ span: 8 }}
+                        name="apiKey"
+                        rules={rules.apiKey}
+                      >
+                        <Input placeholder="请输入API_KEY" />
+                      </Form.Item>
+
+                      <Button
+                        type="primary"
+                        loading={testLoading}
+                        onClick={() => handleValidateLink(true, true)}
+                      >
+                        测试连接
+                      </Button>
+                    </div>
+                  </Form>
                 ),
               },
             ]}

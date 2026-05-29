@@ -61,6 +61,7 @@ export const rendererSettingController = () => {
           return rej(ResultRt.fail(errorText));
         }
 
+        simpleChatbotIns.resetModel();
         if (isUpdateOperate) {
           settingStore.set("modelList", modelList);
           // 重新初始化模型链

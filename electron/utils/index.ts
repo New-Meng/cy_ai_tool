@@ -43,9 +43,7 @@ export interface removeCatchInterface {
 }
 
 // 注意，后面其它模型可能接口返的数据格式不同需要处理
-export const removeModelUrlAndKey = async (
-  OpenAIInstance: OpenAI & { _options: { _$modeType: string } },
-) => {
+export const removeModelUrlAndKey = async (OpenAIInstance: OpenAI) => {
   try {
     try {
       const resultList = await OpenAIInstance.models.list();

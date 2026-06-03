@@ -293,9 +293,12 @@ const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
             activeKey={saveType}
             onChange={setSaveType}
             items={[
+              // 编辑模型时锁定当前保存类型，避免误切换导致表单和保存数据不一致
+
               {
                 key: "default",
                 label: "默认",
+                disabled: !!propsModelName,
                 children: (
                   <Form
                     style={{ marginTop: 20 }}
@@ -411,6 +414,7 @@ const AddModal = forwardRef<InterfaceModalRef, unknown>((_, ref) => {
               {
                 key: "custom",
                 label: "自定义",
+                disabled: !!propsModelName,
                 children: (
                   <Form
                     form={customForm}
